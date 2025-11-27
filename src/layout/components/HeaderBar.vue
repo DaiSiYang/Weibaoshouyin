@@ -47,12 +47,12 @@
       </el-dropdown>
 
       <!-- 通知 -->
-      <el-badge :value="3" class="notification-badge">
+      <el-badge :value="noticeCount" :hidden="noticeCount === 0" class="notification-badge">
         <ArtSvgIcon icon="ri:notification-2-line" class="header-icon notice-button" size="20" color="#7987a1" />
       </el-badge>
 
       <!-- 消息 -->
-      <el-badge :value="5" class="notification-badge">
+      <el-badge :value="messageCount" :hidden="messageCount === 0" class="notification-badge">
         <ArtSvgIcon icon="ri:message-3-line" class="header-icon chat-button" size="20" color="#7987a1" />
       </el-badge>
 
@@ -103,8 +103,8 @@
                 src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
               />
               <div class="user-details">
-                <span class="username">{{ userInfo.userName }}</span>
-                <span class="email">{{ userInfo.email }}</span>
+                <span class="username">{{ userInfoStore.userInfo.username }}</span>
+                <span class="email">{{ userInfoStore.userInfo.email || '暂无邮箱'}}</span>
               </div>
             </div>
             <ul class="menu-list">
@@ -152,6 +152,8 @@ import { themeAnimation } from '@/utils/animation'
 import ArtSvgIcon from '@/components/ArtSvgIcon.vue'
 import SettingsPanel from '@/components/core/SettingsPanel.vue'
 
+const userInfoStore = useUserStore()
+
 const router = useRouter()
 const { locale, t } = useI18n()
 const settingStore = useSettingStore()
@@ -161,6 +163,10 @@ const { menuOpen, isDark } = storeToRefs(settingStore)
 const { userInfo } = storeToRefs(userStore)
 
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
+
+// 通知和消息数量（后续可从接口获取）
+const noticeCount = ref(0)
+const messageCount = ref(0)
 
 const toggleSidebar = () => {
   settingStore.setMenuOpen(!menuOpen.value)

@@ -89,18 +89,22 @@
         "logOutTips": "确定要退出登录吗？"
     },
     "menus": {
-        "dashboard": "仪表盘",
-        "userCenter": "用户中心",
-        "system": "组件中心",
-        "function": "功能示例",
-        "settings": "点赞管理",
-        "document": "文章管理",
-        "safeguard": "维护页面",
-        "result": "结果页面",
-        "exception": "异常页面",
-        "version": "v2.6.1 版本",
-        "help": "帮助文档",
-        "changelog": "更新日志"
+        "dashboard": "数据仪表",
+        "serviceStats": "服务统计",
+        "analysis": "分析统计",
+        "businessStats": "商务统计",
+        "permission": "权限管理",
+        "menuManage": "菜单管理",
+        "appInstall": "应用安装",
+        "userManage": "用户管理",
+        "agreement": "业务协议",
+        "operation": "运营管理",
+        "reward": "奖励分成",
+        "customerService": "客服中心",
+        "userCenter": "个人中心",
+        "operationLog": "操作日志",
+        "monitor": "运维监控",
+        "system": "系统管理"
     },
     "login": {
         "leftView": {

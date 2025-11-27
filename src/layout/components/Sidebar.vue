@@ -4,11 +4,9 @@
       <!-- Logo 和系统名称 -->
       <div class="header" @click="toHome">
         <div class="logo">
-          <svg viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-          </svg>
+          <ArtLogo :size="32" />
         </div>
-        <p :style="{ opacity: menuOpen ? 1 : 0 }">Art Design Pro</p>
+        <p :style="{ opacity: menuOpen ? 1 : 0 }">鹊莲银通运营中心</p>
       </div>
 
       <!-- 菜单列表 -->
@@ -41,6 +39,7 @@ import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useSettingStore } from '@/store/modules/setting'
 import SidebarMenuItem from './SidebarMenuItem.vue'
+import ArtLogo from '@/components/core/ArtLogo.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -122,18 +121,10 @@ const toHome = () => {
       width: 32px;
       height: 32px;
       margin-left: 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
       flex-shrink: 0;
-
-      svg {
-        width: 20px;
-        height: 20px;
-      }
     }
 
     p {

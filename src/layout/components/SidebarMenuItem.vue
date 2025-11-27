@@ -63,8 +63,8 @@ const hasVisibleChildren = computed(() => {
 
 // 获取菜单标题
 const getMenuTitle = (item: RouteRecordRaw) => {
-  const name = item.name?.toString().toLowerCase() || ''
-  return t(`menus.${name}`)
+  // 直接使用路由 meta 中的 title
+  return item.meta?.title || item.name?.toString() || ''
 }
 
 // 处理点击事件

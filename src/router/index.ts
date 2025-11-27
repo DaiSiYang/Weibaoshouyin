@@ -32,86 +32,139 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/',
         component: Layout,
-        redirect: '/dashboard',
+        redirect: '/dashboard/service-stats',
         children: [
+            // 数据仪表（父菜单）
             {
                 path: 'dashboard',
                 name: 'Dashboard',
-                component: () => import('@/views/dashboard/index.vue'),
-                meta: { title: '仪表盘', icon: 'DataLine' }
+                redirect: '/dashboard/service-stats',
+                meta: { title: '数据仪表', icon: 'Odometer' },
+                children: [
+                    {
+                        path: 'service-stats',
+                        name: 'ServiceStats',
+                        component: () => import('@/views/dashboard/index.vue'),
+                        meta: { title: '服务统计', icon: 'House' }
+                    },
+                    {
+                        path: 'analysis',
+                        name: 'Analysis',
+                        component: () => import('@/views/dashboard/index.vue'),
+                        meta: { title: '分析统计', icon: 'DataAnalysis' }
+                    },
+                    {
+                        path: 'business-stats',
+                        name: 'BusinessStats',
+                        component: () => import('@/views/dashboard/index.vue'),
+                        meta: { title: '商务统计', icon: 'Histogram' }
+                    }
+                ]
             },
+            // 权限管理
+            {
+                path: 'permission',
+                name: 'Permission',
+                component: () => import('@/views/system/index.vue'),
+                meta: { title: '权限管理', icon: 'Lock' }
+            },
+            // 菜单管理
+            {
+                path: 'menu-manage',
+                name: 'MenuManage',
+                component: () => import('@/views/system/index.vue'),
+                meta: { title: '菜单管理', icon: 'Grid' }
+            },
+            // 应用安装
+            {
+                path: 'app-install',
+                name: 'AppInstall',
+                component: () => import('@/views/system/index.vue'),
+                meta: { title: '应用安装', icon: 'Download' }
+            },
+            // 用户管理（父菜单）
+            {
+                path: 'user-manage',
+                name: 'UserManage',
+                redirect: '/user-manage/users',
+                meta: { title: '用户管理', icon: 'User' },
+                children: [
+                    {
+                        path: 'users',
+                        name: 'Users',
+                        component: () => import('@/views/system/index.vue'),
+                        meta: { title: '用户列表', icon: 'User' }
+                    },
+                    {
+                        path: 'roles',
+                        name: 'Roles',
+                        component: () => import('@/views/system/index.vue'),
+                        meta: { title: '角色管理', icon: 'Avatar' }
+                    }
+                ]
+            },
+            // 业务协议
+            {
+                path: 'agreement',
+                name: 'Agreement',
+                component: () => import('@/views/document/index.vue'),
+                meta: { title: '业务协议', icon: 'Document' }
+            },
+            // 运营管理
+            {
+                path: 'operation',
+                name: 'Operation',
+                component: () => import('@/views/system/index.vue'),
+                meta: { title: '运营管理', icon: 'Monitor' }
+            },
+            // 奖励分成
+            {
+                path: 'reward',
+                name: 'Reward',
+                component: () => import('@/views/system/index.vue'),
+                meta: { title: '奖励分成', icon: 'Present' }
+            },
+            // 客服中心
+            {
+                path: 'customer-service',
+                name: 'CustomerService',
+                component: () => import('@/views/system/index.vue'),
+                meta: { title: '客服中心', icon: 'Service' }
+            },
+            // 个人中心
             {
                 path: 'user-center',
                 name: 'UserCenter',
                 component: () => import('@/views/user-center/index.vue'),
-                meta: { title: '用户中心', icon: 'User' }
+                meta: { title: '个人中心', icon: 'UserFilled' }
             },
+            // 操作日志
+            {
+                path: 'operation-log',
+                name: 'OperationLog',
+                component: () => import('@/views/changelog/index.vue'),
+                meta: { title: '操作日志', icon: 'Tickets' }
+            },
+            // 运维监控
+            {
+                path: 'monitor',
+                name: 'Monitor',
+                component: () => import('@/views/safeguard/index.vue'),
+                meta: { title: '运维监控', icon: 'View' }
+            },
+            // 系统管理
             {
                 path: 'system',
                 name: 'System',
-                component: () => import('@/views/system/index.vue'),
-                meta: { title: '组件中心', icon: 'Grid' }
-            },
-            {
-                path: 'function',
-                name: 'Function',
-                component: () => import('@/views/function/index.vue'),
-                meta: { title: '功能示例', icon: 'Menu' }
-            },
-            {
-                path: 'settings',
-                name: 'Settings',
                 component: () => import('@/views/settings/index.vue'),
-                meta: { title: '点赞管理', icon: 'User' }
-            },
-            {
-                path: 'document',
-                name: 'Document',
-                component: () => import('@/views/document/index.vue'),
-                meta: { title: '文章管理', icon: 'Document' }
-            },
-            {
-                path: 'safeguard',
-                name: 'Safeguard',
-                component: () => import('@/views/safeguard/index.vue'),
-                meta: { title: '维护页面', icon: 'Setting' }
-            },
-            {
-                path: 'result',
-                name: 'Result',
-                component: () => import('@/views/result/index.vue'),
-                meta: { title: '结果页面', icon: 'CircleCheck' }
-            },
-            {
-                path: 'exception',
-                name: 'Exception',
-                component: () => import('@/views/exception/index.vue'),
-                meta: { title: '异常页面', icon: 'CircleClose' }
-            },
-            {
-                path: 'version',
-                name: 'Version',
-                component: () => import('@/views/version/index.vue'),
-                meta: { title: 'v2.6.1 版本', icon: 'Tickets' }
-            },
-            {
-                path: 'help',
-                name: 'Help',
-                component: () => import('@/views/help/index.vue'),
-                meta: { title: '帮助文档', icon: 'Document' }
-            },
-            {
-                path: 'changelog',
-                name: 'Changelog',
-                component: () => import('@/views/changelog/index.vue'),
-                meta: { title: '更新日志', icon: 'Notebook' }
+                meta: { title: '系统管理', icon: 'Setting' }
             }
         ]
     },
     // 404
     {
         path: '/:pathMatch(.*)*',
-        redirect: '/dashboard'
+        redirect: '/dashboard/service-stats'
     }
 ]
 

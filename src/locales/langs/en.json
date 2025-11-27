@@ -90,17 +90,21 @@
     },
     "menus": {
         "dashboard": "Dashboard",
+        "serviceStats": "Service Stats",
+        "analysis": "Analysis",
+        "businessStats": "Business Stats",
+        "permission": "Permission",
+        "menuManage": "Menu Manage",
+        "appInstall": "App Install",
+        "userManage": "User Manage",
+        "agreement": "Agreement",
+        "operation": "Operation",
+        "reward": "Reward",
+        "customerService": "Customer Service",
         "userCenter": "User Center",
-        "system": "Components",
-        "function": "Functions",
-        "settings": "Settings",
-        "document": "Documents",
-        "safeguard": "Safeguard",
-        "result": "Result",
-        "exception": "Exception",
-        "version": "v2.6.1",
-        "help": "Help",
-        "changelog": "Changelog"
+        "operationLog": "Operation Log",
+        "monitor": "Monitor",
+        "system": "System"
     },
     "login": {
         "leftView": {

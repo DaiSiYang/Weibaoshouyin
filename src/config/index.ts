@@ -18,7 +18,7 @@ import lightStyle from '@/assets/images/settings/menu_styles/light.png'
 const AppConfig = {
     // 系统信息
     systemInfo: {
-        name: 'Weibaoshouyin'
+        name: '鹊莲营通运营中心'
     },
     // 系统主题列表
     settingThemeList: [

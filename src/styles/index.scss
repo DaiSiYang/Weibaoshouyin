@@ -1,0 +1,55 @@
+// 导入菜单主题样式
+@use './menu-theme.scss';
+
+// 导入主题切换动画
+@use './theme-animation.scss';
+
+// 全局样式
+:root {
+    --sidebar-bg: #fff;
+    --sidebar-text: #606266;
+    --sidebar-active-text: #409eff;
+}
+
+// 暗色主题
+html.dark {
+    --sidebar-bg: #141414;
+    --sidebar-text: #ffffffb3;
+    --sidebar-active-text: #fff;
+    --el-bg-color: #0a0a0a;
+    --el-bg-color-page: #000;
+    --el-text-color-primary: #fff;
+    --el-text-color-regular: rgba(255, 255, 255, 0.7);
+    --el-text-color-secondary: rgba(255, 255, 255, 0.5);
+    --el-border-color: rgba(255, 255, 255, 0.13);
+    --el-fill-color-light: rgba(255, 255, 255, 0.08);
+    --el-fill-color: rgba(255, 255, 255, 0.12);
+    --el-fill-color-dark: rgba(255, 255, 255, 0.16);
+    --el-fill-color-darker: rgba(255, 255, 255, 0.2);
+    --el-fill-color-lighter: rgba(255, 255, 255, 0.04);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--el-fill-color-lighter);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-fill-color-dark);
+    border-radius: 3px;
+
+    &:hover {
+        background: var(--el-fill-color-darker);
+    }
+}

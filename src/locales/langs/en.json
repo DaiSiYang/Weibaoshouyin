@@ -1,0 +1,155 @@
+{
+    "setting": {
+        "theme": {
+            "title": "Theme Style",
+            "list": [
+                "Light",
+                "Dark",
+                "System"
+            ]
+        },
+        "menuType": {
+            "title": "Menu Layout",
+            "list": [
+                "Vertical",
+                "Horizontal",
+                "Mixed",
+                "Dual Column"
+            ]
+        },
+        "menuStyle": {
+            "title": "Menu Style"
+        },
+        "color": {
+            "title": "Theme Color"
+        },
+        "box": {
+            "title": "Box Style",
+            "list": [
+                "Border Mode",
+                "Shadow Mode"
+            ]
+        },
+        "container": {
+            "title": "Container Width",
+            "list": [
+                "Fluid",
+                "Fixed"
+            ]
+        },
+        "basics": {
+            "title": "Basic Settings",
+            "list": {
+                "multiTab": "Enable Multi-Tab",
+                "accordion": "Sidebar Accordion Mode",
+                "collapseSidebar": "Show Collapse Sidebar Button",
+                "reloadPage": "Show Reload Page Button",
+                "breadcrumb": "Show Breadcrumb",
+                "language": "Show Language Selector",
+                "progressBar": "Show Progress Bar",
+                "weakMode": "Color Weak Mode",
+                "watermark": "Show Watermark",
+                "menuWidth": "Menu Width",
+                "tabStyle": "Tab Style",
+                "pageTransition": "Page Transition",
+                "borderRadius": "Border Radius"
+            }
+        },
+        "tabStyle": {
+            "default": "Default",
+            "card": "Card",
+            "google": "Google"
+        },
+        "transition": {
+            "list": {
+                "none": "None",
+                "fade": "Fade",
+                "slideLeft": "Slide Left",
+                "slideBottom": "Slide Bottom",
+                "slideTop": "Slide Top"
+            }
+        }
+    },
+    "topBar": {
+        "search": {
+            "title": "Search"
+        },
+        "user": {
+            "userCenter": "User Center",
+            "docs": "Documentation",
+            "github": "GitHub",
+            "lockScreen": "Lock Screen",
+            "logout": "Logout"
+        }
+    },
+    "common": {
+        "tips": "Tips",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "logOutTips": "Are you sure you want to logout?"
+    },
+    "menus": {
+        "dashboard": "Dashboard",
+        "userCenter": "User Center",
+        "system": "Components",
+        "function": "Functions",
+        "settings": "Settings",
+        "document": "Documents",
+        "safeguard": "Safeguard",
+        "result": "Result",
+        "exception": "Exception",
+        "version": "v2.6.1",
+        "help": "Help",
+        "changelog": "Changelog"
+    },
+    "login": {
+        "leftView": {
+            "title": "A backend system combining design aesthetics with efficient development",
+            "subTitle": "Beautiful and practical interface, visually optimized for excellent user experience"
+        },
+        "title": "Welcome Back",
+        "subTitle": "Enter your account and password to login",
+        "roles": {
+            "super": "Super Admin",
+            "admin": "Admin",
+            "user": "User"
+        },
+        "placeholder": {
+            "username": "Please enter username",
+            "password": "Please enter password",
+            "slider": "Please drag the slider to verify"
+        },
+        "sliderText": "Drag to verify",
+        "sliderSuccessText": "Verified",
+        "rememberPwd": "Remember password",
+        "forgetPwd": "Forgot password",
+        "btnText": "Login",
+        "noAccount": "Don't have an account?",
+        "register": "Register",
+        "success": {
+            "title": "Login Success",
+            "message": "Welcome back"
+        }
+    },
+    "forgetPassword": {
+        "title": "Forgot Password?",
+        "subTitle": "Enter your email to reset your password",
+        "placeholder": "Please enter your email",
+        "submitBtnText": "Submit",
+        "backBtnText": "Back"
+    },
+    "register": {
+        "title": "Create Account",
+        "subTitle": "Welcome to join us, please fill in the information to register",
+        "placeholder": {
+            "username": "Please enter username",
+            "password": "Please enter password",
+            "confirmPassword": "Please confirm password"
+        },
+        "agreeText": "I agree to",
+        "privacyPolicy": "Privacy Policy",
+        "submitBtnText": "Register",
+        "hasAccount": "Already have an account?",
+        "toLogin": "Login"
+    }
+}

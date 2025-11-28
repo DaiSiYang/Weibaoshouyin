@@ -65,6 +65,10 @@
                   <el-icon><Edit /></el-icon>
                   编辑角色
                 </el-dropdown-item>
+                <el-dropdown-item @click="handleDelete(row)" style="color: #f56c6c">
+                  <el-icon><Delete /></el-icon>
+                  删除角色
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -88,10 +92,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormRules } from 'element-plus'
-import { Plus, MoreFilled, Setting, Edit } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, Setting, Edit, Delete } from '@element-plus/icons-vue'
 import ArtTable, { type TableColumn } from '@/components/core/ArtTable.vue'
 import ArtFormDialog, { type FormField } from '@/components/core/ArtFormDialog.vue'
-import { getRoleList, editRole, type RoleItem } from '@/api/role'
+import { getRoleList, editRole, deleteRole, type RoleItem } from '@/api/role'
 
 defineOptions({ name: 'Role' })
 
@@ -238,6 +242,27 @@ const handleSubmit = async (data: Record<string, any>) => {
 // 菜单权限
 const handlePermission = (row: RoleItem) => {
   ElMessage.info(`配置角色"${row.name}"的菜单权限`)
+}
+
+// 删除
+const handleDelete = (row: RoleItem) => {
+  ElMessageBox.confirm(`确定删除角色"${row.name}"吗？`, '删除确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      console.log('[角色管理] 删除角色 - 请求参数:', { id: row.id })
+      try {
+        const res = await deleteRole(row.id)
+        console.log('[角色管理] 删除角色 - 响应数据:', res)
+        ElMessage.success('删除成功')
+        fetchData()
+      } catch (error) {
+        console.error('[角色管理] 删除角色失败:', error)
+      }
+    })
+    .catch(() => {})
 }
 
 onMounted(() => fetchData())

@@ -14,19 +14,23 @@
           :key="tab.path"
           :id="`tab-item-${index}`"
           class="tab-item"
-          :class="{ active: tab.path === activeTab }"
+          :class="{ active: tab.path === activeTab, pinned: pinnedTabs.includes(tab.path) }"
           @click="handleClick(tab)"
           @contextmenu.prevent="showContextMenu($event, tab)"
         >
+          <!-- 固定图标 -->
+          <el-icon v-if="pinnedTabs.includes(tab.path)" class="pin-icon">
+            <Paperclip />
+          </el-icon>
           <!-- 谷歌风格左侧分隔线 -->
           <div v-if="tabStyle === 'google'" class="tab-divider" />
           
-          <el-icon v-if="tab.icon" class="tab-icon">
+          <el-icon v-if="tab.icon && !pinnedTabs.includes(tab.path)" class="tab-icon">
             <component :is="tab.icon" />
           </el-icon>
           <span class="tab-title">{{ tab.title }}</span>
           <span
-            v-if="tab.closable !== false && tabs.length > 1"
+            v-if="tab.closable !== false && tabs.length > 1 && !pinnedTabs.includes(tab.path)"
             class="tab-close"
             @click.stop="handleClose(tab.path)"
           >
@@ -66,6 +70,39 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
+
+    <!-- 右键菜单 -->
+    <div
+      v-show="contextMenuVisible"
+      class="context-menu"
+      :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }"
+    >
+      <div class="menu-item" @click="handleContextCommand('refresh')">
+        <el-icon><Refresh /></el-icon>
+        <span>刷新</span>
+      </div>
+      <div class="menu-item" @click="handleContextCommand('pin')">
+        <el-icon><Paperclip /></el-icon>
+        <span>{{ isPinned ? '取消固定' : '固定' }}</span>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item" :class="{ disabled: !canCloseLeftContext }" @click="handleContextCommand('closeLeft')">
+        <el-icon><Back /></el-icon>
+        <span>关闭左侧</span>
+      </div>
+      <div class="menu-item" :class="{ disabled: !canCloseRightContext }" @click="handleContextCommand('closeRight')">
+        <el-icon><Right /></el-icon>
+        <span>关闭右侧</span>
+      </div>
+      <div class="menu-item" :class="{ disabled: closableTabs.length <= 1 }" @click="handleContextCommand('closeOther')">
+        <el-icon><Close /></el-icon>
+        <span>关闭其他</span>
+      </div>
+      <div class="menu-item" :class="{ disabled: closableTabs.length === 0 }" @click="handleContextCommand('closeAll')">
+        <el-icon><CircleClose /></el-icon>
+        <span>关闭全部</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -79,7 +116,10 @@ import {
   Refresh,
   DArrowLeft,
   DArrowRight,
-  CircleClose
+  CircleClose,
+  Paperclip,
+  Back,
+  Right
 } from '@element-plus/icons-vue'
 import { useWorktabStore, type WorkTab } from '@/store/modules/worktab'
 import { useSettingStore } from '@/store/modules/setting'
@@ -96,16 +136,42 @@ const tabListRef = ref<HTMLElement>()
 const translateX = ref(0)
 const transition = ref('')
 
-// 可关闭的标签
-const closableTabs = computed(() => tabs.value.filter((t) => t.closable !== false))
+// 固定的标签
+const pinnedTabs = ref<string[]>([])
+
+// 右键菜单状态
+const contextMenuVisible = ref(false)
+const contextMenuX = ref(0)
+const contextMenuY = ref(0)
+const contextMenuTab = ref<WorkTab | null>(null)
+
+// 可关闭的标签（排除固定的）
+const closableTabs = computed(() => 
+  tabs.value.filter((t) => t.closable !== false && !pinnedTabs.value.includes(t.path))
+)
 
 // 计算是否可以关闭左侧/右侧
 const currentIndex = computed(() => tabs.value.findIndex((t) => t.path === activeTab.value))
 const canCloseLeft = computed(() => {
-  return tabs.value.slice(0, currentIndex.value).some((t) => t.closable !== false)
+  return tabs.value.slice(0, currentIndex.value).some((t) => t.closable !== false && !pinnedTabs.value.includes(t.path))
 })
 const canCloseRight = computed(() => {
-  return tabs.value.slice(currentIndex.value + 1).some((t) => t.closable !== false)
+  return tabs.value.slice(currentIndex.value + 1).some((t) => t.closable !== false && !pinnedTabs.value.includes(t.path))
+})
+
+// 右键菜单的关闭左侧/右侧判断
+const contextTabIndex = computed(() => {
+  if (!contextMenuTab.value) return -1
+  return tabs.value.findIndex((t) => t.path === contextMenuTab.value?.path)
+})
+const canCloseLeftContext = computed(() => {
+  return tabs.value.slice(0, contextTabIndex.value).some((t) => t.closable !== false && !pinnedTabs.value.includes(t.path))
+})
+const canCloseRightContext = computed(() => {
+  return tabs.value.slice(contextTabIndex.value + 1).some((t) => t.closable !== false && !pinnedTabs.value.includes(t.path))
+})
+const isPinned = computed(() => {
+  return contextMenuTab.value ? pinnedTabs.value.includes(contextMenuTab.value.path) : false
 })
 
 // 滚轮滚动
@@ -157,9 +223,11 @@ const handleClick = (tab: WorkTab) => {
 
 // 关闭标签
 const handleClose = (path: string) => {
+  // 固定的标签不能关闭
+  if (pinnedTabs.value.includes(path)) return
+  
   worktabStore.removeTab(path)
   nextTick(() => {
-    // 关闭后调整滚动位置
     if (scrollRef.value && tabListRef.value) {
       const scrollWidth = scrollRef.value.offsetWidth
       const listWidth = tabListRef.value.offsetWidth
@@ -172,8 +240,65 @@ const handleClose = (path: string) => {
   })
 }
 
-// 右键菜单（预留）
-const showContextMenu = (_e: MouseEvent, _tab: WorkTab) => {}
+// 显示右键菜单
+const showContextMenu = (e: MouseEvent, tab: WorkTab) => {
+  contextMenuTab.value = tab
+  contextMenuX.value = e.clientX
+  contextMenuY.value = e.clientY
+  contextMenuVisible.value = true
+}
+
+// 隐藏右键菜单
+const hideContextMenu = () => {
+  contextMenuVisible.value = false
+}
+
+// 右键菜单命令
+const handleContextCommand = (command: string) => {
+  if (!contextMenuTab.value) return
+  
+  const tabPath = contextMenuTab.value.path
+  
+  switch (command) {
+    case 'refresh':
+      if (tabPath === activeTab.value) {
+        router.go(0)
+      } else {
+        router.push(tabPath)
+        nextTick(() => router.go(0))
+      }
+      break
+    case 'pin':
+      if (pinnedTabs.value.includes(tabPath)) {
+        pinnedTabs.value = pinnedTabs.value.filter(p => p !== tabPath)
+      } else {
+        pinnedTabs.value.push(tabPath)
+      }
+      break
+    case 'closeLeft':
+      if (canCloseLeftContext.value) {
+        worktabStore.removeLeft(tabPath, pinnedTabs.value)
+      }
+      break
+    case 'closeRight':
+      if (canCloseRightContext.value) {
+        worktabStore.removeRight(tabPath, pinnedTabs.value)
+      }
+      break
+    case 'closeOther':
+      if (closableTabs.value.length > 1) {
+        worktabStore.removeOthers(tabPath, pinnedTabs.value)
+      }
+      break
+    case 'closeAll':
+      if (closableTabs.value.length > 0) {
+        worktabStore.removeAll(pinnedTabs.value)
+      }
+      break
+  }
+  
+  hideContextMenu()
+}
 
 // 下拉菜单命令
 const handleCommand = (command: string) => {
@@ -182,16 +307,16 @@ const handleCommand = (command: string) => {
       router.go(0)
       break
     case 'closeLeft':
-      worktabStore.removeLeft(activeTab.value)
+      worktabStore.removeLeft(activeTab.value, pinnedTabs.value)
       break
     case 'closeRight':
-      worktabStore.removeRight(activeTab.value)
+      worktabStore.removeRight(activeTab.value, pinnedTabs.value)
       break
     case 'closeOther':
-      worktabStore.removeOthers(activeTab.value)
+      worktabStore.removeOthers(activeTab.value, pinnedTabs.value)
       break
     case 'closeAll':
-      worktabStore.removeAll()
+      worktabStore.removeAll(pinnedTabs.value)
       break
   }
 }
@@ -213,13 +338,28 @@ watch(
   { immediate: true }
 )
 
+// 点击其他地方关闭右键菜单
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.context-menu')) {
+    hideContextMenu()
+  }
+}
+
 onMounted(() => {
   scrollToActiveTab()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
+
 <style lang="scss" scoped>
 .work-tab {
+  position: relative;
   display: flex;
   align-items: center;
   height: 40px;
@@ -255,6 +395,16 @@ onMounted(() => {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+
+  &.pinned {
+    padding-left: 8px;
+    
+    .pin-icon {
+      font-size: 12px;
+      margin-right: 4px;
+      color: var(--el-color-primary);
+    }
+  }
 
   &:hover {
     color: var(--el-color-primary);
@@ -321,6 +471,58 @@ onMounted(() => {
   &:hover {
     color: var(--el-color-primary);
     background: var(--el-color-primary-light-9);
+  }
+}
+
+// 右键菜单
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 150px;
+  padding: 8px 0;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--el-text-color-regular);
+    cursor: pointer;
+    transition: all 0.15s;
+
+    .el-icon {
+      font-size: 15px;
+      color: var(--el-text-color-secondary);
+    }
+
+    &:hover:not(.disabled) {
+      background: var(--el-color-primary-light-9);
+      color: var(--el-color-primary);
+
+      .el-icon {
+        color: var(--el-color-primary);
+      }
+    }
+
+    &.disabled {
+      color: var(--el-text-color-placeholder);
+      cursor: not-allowed;
+
+      .el-icon {
+        color: var(--el-text-color-placeholder);
+      }
+    }
+  }
+
+  .menu-divider {
+    height: 1px;
+    margin: 6px 12px;
+    background: var(--el-border-color-lighter);
   }
 }
 
@@ -467,6 +669,10 @@ onMounted(() => {
     &::after {
       box-shadow: 0 0 0 20px var(--el-color-primary-dark-2);
     }
+  }
+
+  .context-menu {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   }
 }
 

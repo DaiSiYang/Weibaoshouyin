@@ -137,10 +137,16 @@ const routes: RouteRecordRaw[] = [
             },
             // ========== 运维监控 ==========
             {
-                path: 'monitor',
-                name: 'Monitor',
-                component: () => import('@/views/safeguard/index.vue'),
-                meta: { title: '运维监控', icon: 'View' }
+                path: 'safeguard-monitor',
+                name: 'SafeguardMonitor',
+                component: () => import('@/views/safeguard/monitor/index.vue'),
+                meta: { title: '运维监控', icon: 'Monitor', parent: '运维监控', parentIcon: 'View' }
+            },
+            {
+                path: 'safeguard-security',
+                name: 'SafeguardSecurity',
+                component: () => import('@/views/safeguard/security/index.vue'),
+                meta: { title: '接口安全', icon: 'Lock', parent: '运维监控', parentIcon: 'View' }
             },
             // ========== 系统管理 ==========
             {
@@ -187,7 +193,14 @@ export const menuConfig = [
     { path: '/customer-service', title: '客服中心', icon: 'Service' },
     { path: '/user-center', title: '个人中心', icon: 'UserFilled' },
     { path: '/operation-log', title: '操作日志', icon: 'Tickets' },
-    { path: '/monitor', title: '运维监控', icon: 'View' },
+    {
+        title: '运维监控',
+        icon: 'View',
+        children: [
+            { path: '/safeguard-monitor', title: '运维监控', icon: 'Monitor' },
+            { path: '/safeguard-security', title: '接口安全', icon: 'Lock' }
+        ]
+    },
     { path: '/system', title: '系统管理', icon: 'Setting' }
 ]
 

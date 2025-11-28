@@ -52,33 +52,41 @@ export const useWorktabStore = defineStore(
         }
 
         // 关闭左侧标签页
-        const removeLeft = (path: string) => {
+        const removeLeft = (path: string, pinnedTabs: string[] = []) => {
             const index = tabs.value.findIndex((t) => t.path === path)
             tabs.value = tabs.value.filter(
-                (t, i) => i >= index || t.closable === false
+                (t, i) => i >= index || t.closable === false || pinnedTabs.includes(t.path)
             )
         }
 
         // 关闭右侧标签页
-        const removeRight = (path: string) => {
+        const removeRight = (path: string, pinnedTabs: string[] = []) => {
             const index = tabs.value.findIndex((t) => t.path === path)
             tabs.value = tabs.value.filter(
-                (t, i) => i <= index || t.closable === false
+                (t, i) => i <= index || t.closable === false || pinnedTabs.includes(t.path)
             )
         }
 
         // 关闭其他标签页
-        const removeOthers = (path: string) => {
+        const removeOthers = (path: string, pinnedTabs: string[] = []) => {
             tabs.value = tabs.value.filter(
-                (t) => t.path === path || t.closable === false
+                (t) => t.path === path || t.closable === false || pinnedTabs.includes(t.path)
             )
         }
 
         // 关闭所有标签页
-        const removeAll = () => {
-            const firstTab = tabs.value.find((t) => t.closable === false) || tabs.value[0]
-            tabs.value = firstTab ? [firstTab] : []
-            if (firstTab) {
+        const removeAll = (pinnedTabs: string[] = []) => {
+            // 保留不可关闭的和固定的标签
+            tabs.value = tabs.value.filter(
+                (t) => t.closable === false || pinnedTabs.includes(t.path)
+            )
+            // 如果没有标签了，保留第一个
+            if (tabs.value.length === 0) {
+                tabs.value = [{ path: '/service-stats', title: '服务统计', icon: 'House', closable: false }]
+            }
+            // 跳转到第一个标签
+            const firstTab = tabs.value[0]
+            if (firstTab && activeTab.value !== firstTab.path) {
                 activeTab.value = firstTab.path
                 router.push(firstTab.path)
             }

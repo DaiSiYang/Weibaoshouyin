@@ -57,19 +57,22 @@ export interface AssistantEditParams {
 export interface UpdateMobileParams {
     id: number
     mobile: string
-    sms_code: string
+    code: string
 }
 
-// 修改密码参数
+// 修改登录密码参数
 export interface UpdatePasswordParams {
     id: number
-    password: string
+    type: 1 | 2                // 验证方式：1-短信验证，2-旧密码验证
+    password?: string          // 新密码
+    old_password?: string      // 旧密码（type=2 时需要）
+    code?: string              // 验证码（type=1 时需要）
 }
 
 // 修改二级密码参数
 export interface UpdateSecondaryPasswordParams {
     id: number
-    secondary_password: string
+    s_password: string
 }
 
 // 修改安全密钥参数
@@ -90,27 +93,27 @@ export function editAssistant(data: AssistantEditParams) {
 
 // 修改手机号
 export function updateAssistantMobile(data: UpdateMobileParams) {
-    return http.post<any>('/admin/updateMobile', data)
+    return http.post<any>('/admin/edit/mobile', data)
 }
 
 // 修改登录密码
 export function updateAssistantPassword(data: UpdatePasswordParams) {
-    return http.post<any>('/admin/updatePassword', data)
+    return http.post<any>('/admin/edit/login_pw', data)
 }
 
 // 修改二级密码
 export function updateAssistantSecondaryPassword(data: UpdateSecondaryPasswordParams) {
-    return http.post<any>('/admin/updateSecondaryPassword', data)
+    return http.post<any>('/admin/edit/second_pw', data)
 }
 
 // 修改安全密钥
 export function updateAssistantSecureKey(data: UpdateSecureKeyParams) {
-    return http.post<any>('/admin/updateSecureKey', data)
+    return http.post<any>('/admin/edit/secret', data)
 }
 
-// 启用/停用协助人员
-export function toggleAssistantStatus(id: number, status: number) {
-    return http.post<any>('/admin/toggleStatus', { id, status })
+// 启用/停用协助人员（只需传 id，后端自动切换状态）
+export function toggleAssistantStatus(id: number) {
+    return http.post<any>('/admin/enable', { id })
 }
 
 // 删除协助人员
@@ -118,7 +121,17 @@ export function deleteAssistant(id: number) {
     return http.post<any>('/admin/delete', { id })
 }
 
-// 发送短信验证码
-export function sendSmsCode(mobile: string, type: 'add' | 'update_mobile') {
-    return http.post<any>('/sms/send', { mobile, type })
+// 发送新增协助人员验证码
+export function sendRegisterVerifyCode(phone: string) {
+    return http.get<{ verify_code: string }>('/sms/register_verify_code', { phone })
+}
+
+// 发送更换绑定手机验证码
+export function sendBindMobileVerifyCode(phone: string) {
+    return http.get<{ verify_code: string }>('/sms/bind_mobile_verify_code', { phone })
+}
+
+// 发送修改登录密码验证码
+export function sendPasswordVerifyCode(phone: string) {
+    return http.get<{ verify_code: string }>('/sms/ud_login_pw_verify_code', { phone })
 }

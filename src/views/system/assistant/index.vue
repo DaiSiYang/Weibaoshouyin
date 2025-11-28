@@ -194,8 +194,32 @@
     </el-dialog>
 
     <!-- 修改登录密码弹窗 -->
-    <el-dialog v-model="passwordDialogVisible" title="修改登录密码" width="450px" destroy-on-close>
+    <el-dialog v-model="passwordDialogVisible" title="修改登录密码" width="480px" destroy-on-close>
       <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="80px">
+        <el-form-item label="验证方式">
+          <el-radio-group v-model="passwordForm.type">
+            <el-radio :value="1">短信验证</el-radio>
+            <el-radio :value="2">旧密码验证</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <!-- 短信验证 -->
+        <template v-if="passwordForm.type === 1">
+          <el-form-item label="手机号">
+            <el-input :model-value="passwordForm.mobile" disabled />
+          </el-form-item>
+          <el-form-item label="验证码" prop="code">
+            <div class="sms-input">
+              <el-input v-model="passwordForm.code" placeholder="请输入验证码" />
+              <el-button :disabled="smsCooldown > 0" @click="handleSendSms('update_password')">
+                {{ smsCooldown > 0 ? `${smsCooldown}s` : '获取验证码' }}
+              </el-button>
+            </div>
+          </el-form-item>
+        </template>
+        <!-- 旧密码验证 -->
+        <el-form-item v-if="passwordForm.type === 2" label="旧密码" prop="old_password">
+          <el-input v-model="passwordForm.old_password" type="password" placeholder="请输入旧密码" show-password />
+        </el-form-item>
         <el-form-item label="新密码" prop="password">
           <el-input v-model="passwordForm.password" type="password" placeholder="请输入新密码" show-password />
         </el-form-item>
@@ -211,7 +235,7 @@
 
     <!-- 修改二级密码弹窗 -->
     <el-dialog v-model="secondaryPasswordDialogVisible" title="修改二级密码" width="450px" destroy-on-close>
-      <el-form ref="secondaryPasswordFormRef" :model="secondaryPasswordForm" :rules="secondaryPasswordRules" label-width="90px">
+      <el-form ref="secondaryPasswordFormRef" :model="secondaryPasswordForm" :rules="secondaryPasswordRules" label-width="100px">
         <el-form-item label="新二级密码" prop="s_password">
           <el-input v-model="secondaryPasswordForm.s_password" type="password" placeholder="请输入新二级密码" show-password />
         </el-form-item>
@@ -255,7 +279,9 @@ import {
   updateAssistantSecureKey,
   toggleAssistantStatus,
   deleteAssistant,
-  sendSmsCode,
+  sendRegisterVerifyCode,
+  sendBindMobileVerifyCode,
+  sendPasswordVerifyCode,
   type AssistantItem
 } from '@/api/assistant'
 import { getRoleList, type RoleItem } from '@/api/role'
@@ -337,7 +363,15 @@ const mobileForm = reactive({ id: 0, mobile: '', code: '' })
 // 修改登录密码弹窗
 const passwordDialogVisible = ref(false)
 const passwordFormRef = ref<FormInstance>()
-const passwordForm = reactive({ id: 0, password: '', confirm_password: '' })
+const passwordForm = reactive({
+  id: 0,
+  type: 2 as 1 | 2,           // 验证方式：1-短信验证，2-旧密码验证
+  mobile: '',                  // 手机号（用于显示和发送验证码）
+  code: '',                    // 验证码
+  old_password: '',            // 旧密码
+  password: '',
+  confirm_password: ''
+})
 
 // 修改二级密码弹窗
 const secondaryPasswordDialogVisible = ref(false)
@@ -384,6 +418,20 @@ const mobileRules: FormRules = {
 }
 
 const passwordRules: FormRules = {
+  code: [{
+    validator: (_rule, value, callback) => {
+      if (passwordForm.type === 1 && !value) callback(new Error('请输入验证码'))
+      else callback()
+    },
+    trigger: 'blur'
+  }],
+  old_password: [{
+    validator: (_rule, value, callback) => {
+      if (passwordForm.type === 2 && !value) callback(new Error('请输入旧密码'))
+      else callback()
+    },
+    trigger: 'blur'
+  }],
   password: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
@@ -469,14 +517,25 @@ const handleSizeChange = () => fetchData()
 const handleCurrentChange = () => fetchData()
 
 // 发送短信验证码
-const handleSendSms = async (type: 'add' | 'update_mobile') => {
-  const mobile = type === 'add' ? addForm.mobile : mobileForm.mobile
+const handleSendSms = async (type: 'add' | 'update_mobile' | 'update_password') => {
+  let mobile = ''
+  if (type === 'add') mobile = addForm.mobile
+  else if (type === 'update_mobile') mobile = mobileForm.mobile
+  else if (type === 'update_password') mobile = passwordForm.mobile
+
   if (!mobile || !/^1[3-9]\d{9}$/.test(mobile)) {
     ElMessage.warning('请输入正确的手机号')
     return
   }
   try {
-    await sendSmsCode(mobile, type)
+    // 根据类型调用不同的验证码接口
+    if (type === 'update_password') {
+      await sendPasswordVerifyCode(mobile)
+    } else if (type === 'update_mobile') {
+      await sendBindMobileVerifyCode(mobile)
+    } else if (type === 'add') {
+      await sendRegisterVerifyCode(mobile)
+    }
     ElMessage.success('验证码已发送')
     smsCooldown.value = 60
     smsTimer = setInterval(() => {
@@ -583,7 +642,15 @@ const submitUpdateMobile = async () => {
 
 // 修改登录密码
 const handleUpdatePassword = (row: AssistantItem) => {
-  Object.assign(passwordForm, { id: row.id, password: '', confirm_password: '' })
+  Object.assign(passwordForm, {
+    id: row.id,
+    type: 2,
+    mobile: row.mobile,
+    code: '',
+    old_password: '',
+    password: '',
+    confirm_password: ''
+  })
   passwordDialogVisible.value = true
 }
 
@@ -592,7 +659,17 @@ const submitUpdatePassword = async () => {
   await passwordFormRef.value.validate()
   submitLoading.value = true
   try {
-    await updateAssistantPassword({ id: passwordForm.id, password: passwordForm.password })
+    const params: any = {
+      id: passwordForm.id,
+      type: passwordForm.type,
+      password: passwordForm.password
+    }
+    if (passwordForm.type === 1) {
+      params.code = passwordForm.code
+    } else {
+      params.old_password = passwordForm.old_password
+    }
+    await updateAssistantPassword(params)
     ElMessage.success('登录密码修改成功')
     passwordDialogVisible.value = false
   } catch (error) {
@@ -615,7 +692,7 @@ const submitUpdateSecondaryPassword = async () => {
   try {
     await updateAssistantSecondaryPassword({
       id: secondaryPasswordForm.id,
-      secondary_password: secondaryPasswordForm.s_password
+      s_password: secondaryPasswordForm.s_password
     })
     ElMessage.success('二级密码修改成功')
     secondaryPasswordDialogVisible.value = false
@@ -650,12 +727,11 @@ const submitUpdateSecureKey = async () => {
 // 启用/停用
 const handleToggleStatus = (row: AssistantItem) => {
   const action = row.status === 1 ? '停用' : '启用'
-  const newStatus = row.status === 1 ? 2 : 1
   ElMessageBox.confirm(`确定${action}协助人员"${row.real_name}"吗？`, `${action}确认`, {
     confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
   }).then(async () => {
     try {
-      await toggleAssistantStatus(row.id, newStatus)
+      await toggleAssistantStatus(row.id)
       ElMessage.success(`${action}成功`)
       fetchData()
     } catch (error) {

@@ -26,7 +26,7 @@
             <!-- 有子菜单 -->
             <el-sub-menu v-if="menu.children" :index="menu.title">
               <template #title>
-                <el-icon><component :is="menu.icon" /></el-icon>
+                <img :src="getIconUrl(menu.icon)" class="menu-icon" />
                 <span>{{ menu.title }}</span>
               </template>
               <el-menu-item
@@ -34,13 +34,13 @@
                 :key="child.path"
                 :index="child.path"
               >
-                <el-icon><component :is="child.icon" /></el-icon>
+                <img :src="getIconUrl(child.icon)" class="menu-icon" />
                 <span>{{ child.title }}</span>
               </el-menu-item>
             </el-sub-menu>
             <!-- 无子菜单 -->
             <el-menu-item v-else :index="menu.path">
-              <el-icon><component :is="menu.icon" /></el-icon>
+              <img :src="getIconUrl(menu.icon)" class="menu-icon" />
               <span>{{ menu.title }}</span>
             </el-menu-item>
           </template>
@@ -63,6 +63,13 @@ const route = useRoute()
 const settingStore = useSettingStore()
 
 const { menuOpen, isDark } = storeToRefs(settingStore)
+
+// 动态获取图标 URL
+const iconModules = import.meta.glob('@/assets/icon/*.png', { eager: true, import: 'default' })
+const getIconUrl = (iconName: string): string => {
+    const key = `/src/assets/icon/${iconName}`
+    return (iconModules[key] as string) || ''
+}
 
 // 当前激活的菜单
 const activeMenu = computed(() => route.path)
@@ -177,6 +184,14 @@ const toHome = () => {
   }
 }
 
+// 菜单图标样式
+.menu-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
 // 暗色主题
 .dark {
   .layout-sidebar {
@@ -185,6 +200,11 @@ const toHome = () => {
     :deep(.el-scrollbar__thumb) {
       background-color: #777;
     }
+  }
+
+  // 暗色模式下图标反色
+  .menu-icon {
+    filter: brightness(0) invert(1) opacity(0.7);
   }
 }
 </style>

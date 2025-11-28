@@ -1,18 +1,47 @@
 <template>
-  <div class="role-container">
-    <el-card shadow="never" class="role-card">
+  <div class="page-container">
+    <!-- 搜索栏 -->
+    <el-card v-show="showSearch" shadow="never" class="search-card">
+      <el-form :model="searchForm" inline>
+        <el-form-item label="角色名称">
+          <el-input v-model="searchForm.name" placeholder="请输入角色名称" clearable style="width: 180px" />
+        </el-form-item>
+        <el-form-item label="角色编号">
+          <el-input v-model="searchForm.key" placeholder="请输入角色编号" clearable style="width: 180px" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="searchForm.status" placeholder="请选择" clearable style="width: 120px">
+            <el-option label="启用" :value="1" />
+            <el-option label="禁用" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">
+            <el-icon><Search /></el-icon>
+            搜索
+          </el-button>
+          <el-button @click="resetSearch">
+            <el-icon><Refresh /></el-icon>
+            重置
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <!-- 表格 -->
+    <el-card shadow="never" class="table-card">
       <ArtTable
         :data="tableData"
         :columns="columns"
         :loading="loading"
         :total="total"
+        :show-search="false"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         @refresh="fetchData"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       >
-        <!-- 左侧按钮 -->
         <template #header-left>
           <el-button type="primary" @click="handleAdd">
             <el-icon><Plus /></el-icon>
@@ -20,36 +49,20 @@
           </el-button>
         </template>
 
-        <!-- 搜索栏 -->
-        <template #search>
-          <el-form :model="searchForm" inline>
-            <el-form-item label="角色名称">
-              <el-input v-model="searchForm.name" placeholder="请输入角色名称" clearable />
-            </el-form-item>
-            <el-form-item label="角色编号">
-              <el-input v-model="searchForm.key" placeholder="请输入角色编号" clearable />
-            </el-form-item>
-            <el-form-item label="状态">
-              <el-select v-model="searchForm.status" placeholder="请选择" clearable style="width: 120px">
-                <el-option label="启用" :value="1" />
-                <el-option label="禁用" :value="2" />
-              </el-select>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="handleSearch">搜索</el-button>
-              <el-button @click="resetSearch">重置</el-button>
-            </el-form-item>
-          </el-form>
+        <template #header-right-extra>
+          <el-tooltip content="搜索" placement="top">
+            <div class="header-btn" :class="{ active: showSearch }" @click="showSearch = !showSearch">
+              <el-icon><Search /></el-icon>
+            </div>
+          </el-tooltip>
         </template>
 
-        <!-- 状态列插槽 -->
         <template #status="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'">
             {{ row.status === 1 ? '启用' : '禁用' }}
           </el-tag>
         </template>
 
-        <!-- 操作列插槽 -->
         <template #operation="{ row }">
           <el-dropdown trigger="click">
             <el-button link>
@@ -76,7 +89,6 @@
       </ArtTable>
     </el-card>
 
-    <!-- 使用通用表单弹窗组件 -->
     <ArtFormDialog
       v-model="dialogVisible"
       :title="dialogType === 'add' ? '新增角色' : '编辑角色'"
@@ -92,14 +104,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormRules } from 'element-plus'
-import { Plus, MoreFilled, Setting, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, Setting, Edit, Delete, Search, Refresh } from '@element-plus/icons-vue'
 import ArtTable, { type TableColumn } from '@/components/core/ArtTable.vue'
 import ArtFormDialog, { type FormField } from '@/components/core/ArtFormDialog.vue'
 import { getRoleList, editRole, deleteRole, type RoleItem } from '@/api/role'
 
 defineOptions({ name: 'Role' })
 
-// 表格列配置
+const showSearch = ref(false)
+
 const columns: TableColumn[] = [
   { type: 'index', label: '序号', width: 60 },
   { prop: 'name', label: '角色名称', minWidth: 120 },
@@ -111,64 +124,39 @@ const columns: TableColumn[] = [
   { prop: 'operation', label: '其他操作', width: 80, fixed: 'right', slot: true }
 ]
 
-// 搜索
-const searchForm = reactive({
-  name: '',
-  key: '',
-  status: undefined as number | undefined
-})
-
-// 表格
+const searchForm = reactive({ name: '', key: '', status: undefined as number | undefined })
 const loading = ref(false)
 const tableData = ref<RoleItem[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
 
-// 弹窗
 const dialogVisible = ref(false)
 const dialogType = ref<'add' | 'edit'>('add')
 const submitLoading = ref(false)
 const formData = ref<Record<string, any>>({})
 
-// 表单字段配置
 const formFields: FormField[] = [
   { prop: 'name', label: '角色名称', type: 'input' },
   { prop: 'key', label: '角色编号', type: 'input' },
   { prop: 'remark', label: '作用描述', type: 'textarea', rows: 3 },
-  {
-    prop: 'status',
-    label: '启用状态',
-    type: 'radio',
-    options: [
-      { label: '启用', value: 1 },
-      { label: '禁用', value: 2 }
-    ]
-  }
+  { prop: 'status', label: '启用状态', type: 'radio', options: [{ label: '启用', value: 1 }, { label: '禁用', value: 2 }] }
 ]
 
-// 表单校验规则
 const rules: FormRules = {
   name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
   key: [{ required: true, message: '请输入角色编号', trigger: 'blur' }]
 }
 
-// 获取数据
 const fetchData = async () => {
   loading.value = true
-  const params: Record<string, any> = {
-    page: currentPage.value,
-    page_size: pageSize.value
-  }
-  // 添加搜索条件（只传有值的参数）
+  const params: Record<string, any> = { page: currentPage.value, page_size: pageSize.value }
   if (searchForm.name) params.name = searchForm.name
   if (searchForm.key) params.key = searchForm.key
   if (searchForm.status !== undefined) params.status = searchForm.status
   
-  console.log('[角色管理] 获取列表 - 请求参数:', params)
   try {
     const res = await getRoleList(params)
-    console.log('[角色管理] 获取列表 - 响应数据:', res)
     tableData.value = res.list || []
     total.value = res.total_count || 0
   } catch (error) {
@@ -178,114 +166,101 @@ const fetchData = async () => {
   }
 }
 
-const handleSearch = () => {
-  currentPage.value = 1
-  fetchData()
-}
-
+const handleSearch = () => { currentPage.value = 1; fetchData() }
 const resetSearch = () => {
   searchForm.name = ''
   searchForm.key = ''
   searchForm.status = undefined
   handleSearch()
 }
-
 const handleSizeChange = () => fetchData()
 const handleCurrentChange = () => fetchData()
 
-// 新增
 const handleAdd = () => {
   dialogType.value = 'add'
-  formData.value = {
-    name: '',
-    key: '',
-    remark: '',
-    status: 1
-  }
+  formData.value = { name: '', key: '', remark: '', status: 1 }
   dialogVisible.value = true
 }
 
-// 编辑
 const handleEdit = (row: RoleItem) => {
   dialogType.value = 'edit'
   formData.value = { ...row }
   dialogVisible.value = true
 }
 
-// 提交
 const handleSubmit = async (data: Record<string, any>) => {
   submitLoading.value = true
-  const params: Record<string, any> = {
-    name: data.name,
-    key: data.key,
-    remark: data.remark,
-    status: data.status
-  }
-  // 编辑时需要传 id
-  if (dialogType.value === 'edit' && data.id) {
-    params.id = data.id
-  }
-  const action = dialogType.value === 'add' ? '新增' : '编辑'
-  console.log(`[角色管理] ${action}角色 - 请求参数:`, params)
+  const params: Record<string, any> = { name: data.name, key: data.key, remark: data.remark, status: data.status }
+  if (dialogType.value === 'edit' && data.id) params.id = data.id
+  
   try {
-    const res = await editRole(params)
-    console.log(`[角色管理] ${action}角色 - 响应数据:`, res)
-    ElMessage.success(`${action}成功`)
+    await editRole(params)
+    ElMessage.success(dialogType.value === 'add' ? '新增成功' : '编辑成功')
     dialogVisible.value = false
     fetchData()
   } catch (error) {
-    console.error(`[角色管理] ${action}角色失败:`, error)
+    console.error('[角色管理] 操作失败:', error)
   } finally {
     submitLoading.value = false
   }
 }
 
-// 菜单权限
 const handlePermission = (row: RoleItem) => {
   ElMessage.info(`配置角色"${row.name}"的菜单权限`)
 }
 
-// 删除
 const handleDelete = (row: RoleItem) => {
   ElMessageBox.confirm(`确定删除角色"${row.name}"吗？`, '删除确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(async () => {
-      console.log('[角色管理] 删除角色 - 请求参数:', { id: row.id })
-      try {
-        const res = await deleteRole(row.id)
-        console.log('[角色管理] 删除角色 - 响应数据:', res)
-        ElMessage.success('删除成功')
-        fetchData()
-      } catch (error) {
-        console.error('[角色管理] 删除角色失败:', error)
-      }
-    })
-    .catch(() => {})
+    confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+  }).then(async () => {
+    try {
+      await deleteRole(row.id)
+      ElMessage.success('删除成功')
+      fetchData()
+    } catch (error) {
+      console.error('[角色管理] 删除失败:', error)
+    }
+  }).catch(() => {})
 }
 
 onMounted(() => fetchData())
 </script>
 
 <style lang="scss" scoped>
-.role-container {
+.page-container {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.role-card {
-  height: 100%;
-
-  :deep(.el-card__body) {
-    height: 100%;
-    padding: 16px;
-  }
+.search-card {
+  flex-shrink: 0;
+  :deep(.el-card__body) { padding: 16px 16px 0; }
+  :deep(.el-form-item) { margin-bottom: 16px; }
 }
 
-:deep(.el-dropdown-menu__item) {
+.table-card {
+  flex: 1;
+  min-height: 0;
+  :deep(.el-card__body) { height: 100%; padding: 16px; }
+}
+
+.header-btn {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  transition: all 0.2s;
+
+  &:hover { background: var(--el-fill-color); color: var(--el-color-primary); }
+  &.active { background: var(--el-color-primary); color: #fff; }
 }
+
+:deep(.el-dropdown-menu__item) { display: flex; align-items: center; gap: 8px; }
 </style>

@@ -55,10 +55,22 @@ const routes: RouteRecordRaw[] = [
             },
             // ========== 权限管理 ==========
             {
-                path: 'permission',
-                name: 'Permission',
-                component: () => import('@/views/system/index.vue'),
-                meta: { title: '权限管理', icon: 'Lock' }
+                path: 'assistants',
+                name: 'Assistants',
+                component: () => import('@/views/system/assistant/index.vue'),
+                meta: { title: '协助人员', icon: 'UserFilled', parent: '权限管理', parentIcon: 'Lock' }
+            },
+            {
+                path: 'roles',
+                name: 'Roles',
+                component: () => import('@/views/system/role/index.vue'),
+                meta: { title: '角色管理', icon: 'Avatar', parent: '权限管理', parentIcon: 'Lock' }
+            },
+            {
+                path: 'depts',
+                name: 'Depts',
+                component: () => import('@/views/system/dept/index.vue'),
+                meta: { title: '部门管理', icon: 'OfficeBuilding', parent: '权限管理', parentIcon: 'Lock' }
             },
             // ========== 菜单管理 ==========
             {
@@ -74,25 +86,7 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/app-install/index.vue'),
                 meta: { title: '应用安装', icon: 'Download' }
             },
-            // ========== 用户管理 ==========
-            {
-                path: 'assistants',
-                name: 'Assistants',
-                component: () => import('@/views/system/assistant/index.vue'),
-                meta: { title: '协助人员', icon: 'UserFilled', parent: '用户管理', parentIcon: 'User' }
-            },
-            {
-                path: 'roles',
-                name: 'Roles',
-                component: () => import('@/views/system/role/index.vue'),
-                meta: { title: '角色管理', icon: 'Avatar', parent: '用户管理', parentIcon: 'User' }
-            },
-            {
-                path: 'depts',
-                name: 'Depts',
-                component: () => import('@/views/system/dept/index.vue'),
-                meta: { title: '部门管理', icon: 'OfficeBuilding', parent: '用户管理', parentIcon: 'User' }
-            },
+
             // ========== 业务协议 ==========
             {
                 path: 'agreement',
@@ -165,43 +159,43 @@ const routes: RouteRecordRaw[] = [
 ]
 
 // 菜单配置（用于侧边栏显示，支持嵌套）
+// 图标使用 assets/icon 目录下的图片
 export const menuConfig = [
     {
         title: '数据仪表',
-        icon: 'Odometer',
+        icon: '数据仪表_3.png',
         children: [
-            { path: '/service-stats', title: '服务统计', icon: 'House' },
-            { path: '/analysis', title: '分析统计', icon: 'DataAnalysis' },
-            { path: '/business-stats', title: '商务统计', icon: 'Histogram' }
+            { path: '/service-stats', title: '服务统计', icon: '服务统计_3.png' },
+            { path: '/analysis', title: '分析统计', icon: '分析统计_3.png' },
+            { path: '/business-stats', title: '商务统计', icon: '商务统计_3.png' }
         ]
     },
-    { path: '/permission', title: '权限管理', icon: 'Lock' },
-    { path: '/menu-manage', title: '菜单管理', icon: 'Grid' },
-    { path: '/app-install', title: '应用安装', icon: 'Download' },
     {
-        title: '用户管理',
-        icon: 'User',
+        title: '权限管理',
+        icon: '权限管理_3.png',
         children: [
-            { path: '/assistants', title: '协助人员', icon: 'UserFilled' },
-            { path: '/roles', title: '角色管理', icon: 'Avatar' },
-            { path: '/depts', title: '部门管理', icon: 'OfficeBuilding' }
+            { path: '/assistants', title: '协助人员', icon: '用户管理_3.png' },
+            { path: '/roles', title: '角色管理', icon: '用户管理_3.png' },
+            { path: '/depts', title: '部门管理', icon: '用户管理_3.png' }
         ]
     },
-    { path: '/agreement', title: '业务协议', icon: 'Document' },
-    { path: '/operation', title: '运营管理', icon: 'Monitor' },
-    { path: '/reward', title: '奖励分成', icon: 'Present' },
-    { path: '/customer-service', title: '客服中心', icon: 'Service' },
-    { path: '/user-center', title: '个人中心', icon: 'UserFilled' },
-    { path: '/operation-log', title: '操作日志', icon: 'Tickets' },
+    { path: '/menu-manage', title: '菜单管理', icon: '菜单管理_3.png' },
+    { path: '/app-install', title: '应用安装', icon: '应用安装_3.png' },
+    { path: '/agreement', title: '业务协议', icon: '业务协议_3.png' },
+    { path: '/operation', title: '运营管理', icon: '运营管理_3.png' },
+    { path: '/reward', title: '奖励分成', icon: '奖励分成_3.png' },
+    { path: '/customer-service', title: '客服中心', icon: '客服中心_3.png' },
+    { path: '/user-center', title: '个人中心', icon: '个人中心_3.png' },
+    { path: '/operation-log', title: '操作日志', icon: '操作日志_3.png' },
     {
         title: '运维监控',
-        icon: 'View',
+        icon: '运维监控_3.png',
         children: [
-            { path: '/safeguard-monitor', title: '运维监控', icon: 'Monitor' },
-            { path: '/safeguard-security', title: '接口安全', icon: 'Lock' }
+            { path: '/safeguard-monitor', title: '运维监控', icon: '运维监控_3.png' },
+            { path: '/safeguard-security', title: '接口安全', icon: '系统管理_3.png' }
         ]
     },
-    { path: '/system', title: '系统管理', icon: 'Setting' }
+    { path: '/system', title: '系统管理', icon: '系统管理_3.png' }
 ]
 
 const router = createRouter({

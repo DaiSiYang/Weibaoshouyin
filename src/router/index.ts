@@ -71,7 +71,7 @@ const routes: RouteRecordRaw[] = [
             {
                 path: 'app-install',
                 name: 'AppInstall',
-                component: () => import('@/views/system/index.vue'),
+                component: () => import('@/views/app-install/index.vue'),
                 meta: { title: '应用安装', icon: 'Download' }
             },
             // ========== 用户管理 ==========

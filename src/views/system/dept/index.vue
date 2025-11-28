@@ -99,7 +99,7 @@ const columns: TableColumn[] = [
   { prop: 'remark', label: '作用描述', minWidth: 180, showOverflowTooltip: true },
   { prop: 'status', label: '使用状态', width: 100, slot: true },
   { prop: 'created_time', label: '创建时间', width: 170 },
-  { prop: 'updated_time', label: '更新时间', width: 170 },
+  { prop: 'update_time', label: '更新时间', width: 170 },
   { prop: 'operation', label: '其他操作', width: 80, fixed: 'right', slot: true }
 ]
 

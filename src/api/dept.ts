@@ -6,20 +6,27 @@ import http from '@/utils/http'
 // 部门项类型
 export interface DeptItem {
     id: number
+    pid: number
     name: string
     code: string
-    remark: string
+    type: string
+    leader: string
+    phone: string
+    email: string
+    level: number
+    tree: string
+    sort: number
     status: number
+    remark: string
     created_time: string
-    updated_time: string
-    pid?: number
-    sort?: number
+    update_time: string
+    children?: DeptItem[]
 }
 
 // 部门列表响应
 export interface DeptListResponse {
     list: DeptItem[]
-    ids?: number[]
+    ids: number[]
 }
 
 // 部门列表查询参数

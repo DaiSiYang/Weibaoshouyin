@@ -76,10 +76,10 @@ const routes: RouteRecordRaw[] = [
             },
             // ========== 用户管理 ==========
             {
-                path: 'users',
-                name: 'Users',
+                path: 'assistants',
+                name: 'Assistants',
                 component: () => import('@/views/system/index.vue'),
-                meta: { title: '用户列表', icon: 'User', parent: '用户管理', parentIcon: 'User' }
+                meta: { title: '协助人员', icon: 'UserFilled', parent: '用户管理', parentIcon: 'User' }
             },
             {
                 path: 'roles',
@@ -176,7 +176,7 @@ export const menuConfig = [
         title: '用户管理',
         icon: 'User',
         children: [
-            { path: '/users', title: '用户列表', icon: 'User' },
+            { path: '/assistants', title: '协助人员', icon: 'UserFilled' },
             { path: '/roles', title: '角色管理', icon: 'Avatar' },
             { path: '/depts', title: '部门管理', icon: 'OfficeBuilding' }
         ]

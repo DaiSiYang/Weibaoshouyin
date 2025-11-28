@@ -101,6 +101,7 @@ defineOptions({ name: 'Role' })
 
 // 表格列配置
 const columns: TableColumn[] = [
+  { type: 'index', label: '序号', width: 60 },
   { prop: 'name', label: '角色名称', minWidth: 120 },
   { prop: 'key', label: '角色编号', minWidth: 120 },
   { prop: 'remark', label: '作用描述', minWidth: 180, showOverflowTooltip: true },

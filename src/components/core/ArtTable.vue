@@ -56,8 +56,19 @@
       v-bind="$attrs"
     >
       <!-- 通过 columns 配置渲染列 -->
-      <template v-for="col in visibleColumns" :key="col.prop">
+      <template v-for="col in visibleColumns" :key="col.prop || col.type">
+        <!-- 序号/选择/展开列 -->
         <el-table-column
+          v-if="col.type"
+          :type="col.type"
+          :label="col.label"
+          :width="col.width"
+          :fixed="col.fixed"
+          :align="col.align || 'center'"
+        />
+        <!-- 普通列 -->
+        <el-table-column
+          v-else
           v-bind="getColumnProps(col)"
         >
           <!-- 自定义表头插槽 -->
@@ -78,12 +89,12 @@
             <slot
               v-else-if="col.slot"
               :name="col.prop"
-              v-bind="{ ...scope, value: scope.row[col.prop] }"
+              v-bind="{ ...scope, value: scope.row[col.prop!] }"
             >
-              {{ scope.row[col.prop] }}
+              {{ scope.row[col.prop!] }}
             </slot>
             <!-- 默认渲染 -->
-            <span v-else>{{ scope.row[col.prop] }}</span>
+            <span v-else>{{ scope.row[col.prop!] }}</span>
           </template>
         </el-table-column>
       </template>
@@ -122,8 +133,9 @@ defineOptions({ name: 'ArtTable' })
 
 // 列配置类型
 export interface TableColumn {
-  prop: string
+  prop?: string
   label: string
+  type?: 'index' | 'selection' | 'expand'
   width?: number | string
   minWidth?: number | string
   fixed?: 'left' | 'right' | boolean
@@ -195,8 +207,9 @@ const columnVisibility = ref<Record<string, boolean>>({})
 // 初始化列可见状态
 const initColumnVisibility = () => {
   props.columns.forEach(col => {
-    if (columnVisibility.value[col.prop] === undefined) {
-      columnVisibility.value[col.prop] = col.visible !== false
+    const key = col.prop || col.type || ''
+    if (key && columnVisibility.value[key] === undefined) {
+      columnVisibility.value[key] = col.visible !== false
     }
   })
 }
@@ -206,12 +219,14 @@ watch(() => props.columns, () => {
   initColumnVisibility()
 }, { immediate: true })
 
-// 列设置（带 visible 状态）
+// 列设置（带 visible 状态，排除 type 列）
 const columnChecks = computed(() => {
-  return props.columns.map(col => ({
-    ...col,
-    visible: columnVisibility.value[col.prop] ?? true
-  }))
+  return props.columns
+    .filter(col => col.prop) // 只显示有 prop 的列
+    .map(col => ({
+      ...col,
+      visible: columnVisibility.value[col.prop!] ?? true
+    }))
 })
 
 // 切换列可见状态
@@ -221,7 +236,10 @@ const toggleColumnVisible = (prop: string, visible: boolean) => {
 
 // 可见列
 const visibleColumns = computed(() => {
-  return props.columns.filter(col => columnVisibility.value[col.prop] !== false)
+  return props.columns.filter(col => {
+    const key = col.prop || col.type || ''
+    return columnVisibility.value[key] !== false
+  })
 })
 
 // 获取列属性（过滤掉自定义属性）

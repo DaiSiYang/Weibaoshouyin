@@ -94,6 +94,7 @@ defineOptions({ name: 'Dept' })
 
 // 表格列配置
 const columns: TableColumn[] = [
+  { type: 'index', label: '序号', width: 60 },
   { prop: 'name', label: '部门名称', minWidth: 120 },
   { prop: 'code', label: '部门编号', minWidth: 120 },
   { prop: 'remark', label: '作用描述', minWidth: 180, showOverflowTooltip: true },

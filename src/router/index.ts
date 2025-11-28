@@ -87,6 +87,12 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/system/role/index.vue'),
                 meta: { title: '角色管理', icon: 'Avatar', parent: '用户管理', parentIcon: 'User' }
             },
+            {
+                path: 'depts',
+                name: 'Depts',
+                component: () => import('@/views/system/dept/index.vue'),
+                meta: { title: '部门管理', icon: 'OfficeBuilding', parent: '用户管理', parentIcon: 'User' }
+            },
             // ========== 业务协议 ==========
             {
                 path: 'agreement',
@@ -171,7 +177,8 @@ export const menuConfig = [
         icon: 'User',
         children: [
             { path: '/users', title: '用户列表', icon: 'User' },
-            { path: '/roles', title: '角色管理', icon: 'Avatar' }
+            { path: '/roles', title: '角色管理', icon: 'Avatar' },
+            { path: '/depts', title: '部门管理', icon: 'OfficeBuilding' }
         ]
     },
     { path: '/agreement', title: '业务协议', icon: 'Document' },

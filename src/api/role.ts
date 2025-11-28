@@ -39,8 +39,17 @@ export interface RoleEditParams {
     status: number
 }
 
+// 角色列表查询参数
+export interface RoleListParams {
+    page?: number
+    page_size?: number
+    name?: string
+    key?: string
+    status?: number
+}
+
 // 获取角色列表
-export function getRoleList(params?: { page?: number; page_size?: number }) {
+export function getRoleList(params?: RoleListParams) {
     return http.get<RoleListResponse>('/role/list', params)
 }
 

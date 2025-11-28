@@ -26,10 +26,13 @@
             <el-form-item label="角色名称">
               <el-input v-model="searchForm.name" placeholder="请输入角色名称" clearable />
             </el-form-item>
+            <el-form-item label="角色编号">
+              <el-input v-model="searchForm.key" placeholder="请输入角色编号" clearable />
+            </el-form-item>
             <el-form-item label="状态">
               <el-select v-model="searchForm.status" placeholder="请选择" clearable style="width: 120px">
                 <el-option label="启用" :value="1" />
-                <el-option label="禁用" :value="0" />
+                <el-option label="禁用" :value="2" />
               </el-select>
             </el-form-item>
             <el-form-item>
@@ -106,6 +109,7 @@ const columns: TableColumn[] = [
 // 搜索
 const searchForm = reactive({
   name: '',
+  key: '',
   status: undefined as number | undefined
 })
 
@@ -147,10 +151,15 @@ const rules: FormRules = {
 // 获取数据
 const fetchData = async () => {
   loading.value = true
-  const params = {
+  const params: Record<string, any> = {
     page: currentPage.value,
     page_size: pageSize.value
   }
+  // 添加搜索条件（只传有值的参数）
+  if (searchForm.name) params.name = searchForm.name
+  if (searchForm.key) params.key = searchForm.key
+  if (searchForm.status !== undefined) params.status = searchForm.status
+  
   console.log('[角色管理] 获取列表 - 请求参数:', params)
   try {
     const res = await getRoleList(params)
@@ -171,6 +180,7 @@ const handleSearch = () => {
 
 const resetSearch = () => {
   searchForm.name = ''
+  searchForm.key = ''
   searchForm.status = undefined
   handleSearch()
 }

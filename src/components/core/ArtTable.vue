@@ -27,9 +27,11 @@
                 class="column-item"
               >
                 <el-checkbox
-                  v-model="col.visible"
-                  :label="col.label"
-                />
+                  :model-value="col.visible"
+                  @update:model-value="(val) => toggleColumnVisible(col.prop, val as boolean)"
+                >
+                  {{ col.label }}
+                </el-checkbox>
               </div>
             </div>
           </el-popover>
@@ -107,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type VNode } from 'vue'
+import { ref, computed, watch, type VNode } from 'vue'
 import { useFullscreen } from '@vueuse/core'
 import {
   Search,
@@ -187,17 +189,39 @@ const { toggle: toggleFullscreen } = useFullscreen()
 // 表格高度
 const tableHeight = computed(() => props.height)
 
+// 列设置状态（用 reactive 保存勾选状态）
+const columnVisibility = ref<Record<string, boolean>>({})
+
+// 初始化列可见状态
+const initColumnVisibility = () => {
+  props.columns.forEach(col => {
+    if (columnVisibility.value[col.prop] === undefined) {
+      columnVisibility.value[col.prop] = col.visible !== false
+    }
+  })
+}
+
+// 监听 columns 变化，初始化可见状态
+watch(() => props.columns, () => {
+  initColumnVisibility()
+}, { immediate: true })
+
 // 列设置（带 visible 状态）
 const columnChecks = computed(() => {
   return props.columns.map(col => ({
     ...col,
-    visible: col.visible !== false
+    visible: columnVisibility.value[col.prop] ?? true
   }))
 })
 
+// 切换列可见状态
+const toggleColumnVisible = (prop: string, visible: boolean) => {
+  columnVisibility.value[prop] = visible
+}
+
 // 可见列
 const visibleColumns = computed(() => {
-  return columnChecks.value.filter(col => col.visible !== false)
+  return props.columns.filter(col => columnVisibility.value[col.prop] !== false)
 })
 
 // 获取列属性（过滤掉自定义属性）

@@ -1,5 +1,5 @@
 <template>
-  <div class="art-table-container">
+  <div class="art-table-container" :class="{ 'is-empty': isEmpty }">
     <!-- 顶部操作栏 -->
     <div class="table-header">
       <div class="header-left">
@@ -7,32 +7,56 @@
       </div>
       <div class="header-right">
         <el-tooltip v-if="showSearch" content="搜索" placement="top">
-          <el-button :icon="Search" circle @click="searchVisible = !searchVisible" />
+          <div class="header-btn" :class="{ active: searchVisible }" @click="searchVisible = !searchVisible">
+            <el-icon><Search /></el-icon>
+          </div>
         </el-tooltip>
         <el-tooltip content="刷新" placement="top">
-          <el-button :icon="Refresh" circle @click="$emit('refresh')" />
+          <div class="header-btn" :class="{ loading: refreshing }" @click="handleRefresh">
+            <el-icon :class="{ 'is-loading': refreshing }"><Refresh /></el-icon>
+          </div>
+        </el-tooltip>
+        <el-tooltip content="密度" placement="top">
+          <el-dropdown trigger="click" @command="handleSizeCommand">
+            <div class="header-btn">
+              <el-icon><DCaret /></el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="small" :class="{ 'is-active': tableSize === 'small' }">紧凑</el-dropdown-item>
+                <el-dropdown-item command="default" :class="{ 'is-active': tableSize === 'default' }">默认</el-dropdown-item>
+                <el-dropdown-item command="large" :class="{ 'is-active': tableSize === 'large' }">宽松</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </el-tooltip>
         <el-tooltip content="全屏" placement="top">
-          <el-button :icon="FullScreen" circle @click="toggleFullscreen" />
+          <div class="header-btn" @click="toggleFullscreen">
+            <el-icon><FullScreen /></el-icon>
+          </div>
         </el-tooltip>
         <el-tooltip content="列设置" placement="top">
-          <el-popover placement="bottom" trigger="click" :width="200">
+          <el-popover placement="bottom-end" trigger="click" :width="180">
             <template #reference>
-              <el-button :icon="Operation" circle />
+              <div class="header-btn">
+                <el-icon><Setting /></el-icon>
+              </div>
             </template>
             <div class="column-settings">
-              <div
-                v-for="col in columnChecks"
-                :key="col.prop"
-                class="column-item"
-              >
-                <el-checkbox
-                  :model-value="col.visible"
-                  @update:model-value="(val) => toggleColumnVisible(col.prop, val as boolean)"
+              <el-scrollbar max-height="300px">
+                <div
+                  v-for="col in columnChecks"
+                  :key="col.prop"
+                  class="column-item"
                 >
-                  {{ col.label }}
-                </el-checkbox>
-              </div>
+                  <el-checkbox
+                    :model-value="col.visible"
+                    @update:model-value="(val) => toggleColumnVisible(col.prop!, val as boolean)"
+                  >
+                    {{ col.label }}
+                  </el-checkbox>
+                </div>
+              </el-scrollbar>
             </div>
           </el-popover>
         </el-tooltip>
@@ -40,9 +64,11 @@
     </div>
 
     <!-- 搜索栏 -->
-    <div v-if="showSearch" v-show="searchVisible" class="search-bar">
-      <slot name="search" />
-    </div>
+    <transition name="slide-fade">
+      <div v-if="showSearch" v-show="searchVisible" class="search-bar">
+        <slot name="search" />
+      </div>
+    </transition>
 
     <!-- 表格 -->
     <el-table
@@ -51,7 +77,9 @@
       :data="data"
       :stripe="stripe"
       :border="border"
+      :size="tableSize"
       :height="tableHeight"
+      :header-cell-style="headerCellStyle"
       style="width: 100%"
       v-bind="$attrs"
     >
@@ -67,10 +95,7 @@
           :align="col.align || 'center'"
         />
         <!-- 普通列 -->
-        <el-table-column
-          v-else
-          v-bind="getColumnProps(col)"
-        >
+        <el-table-column v-else v-bind="getColumnProps(col)">
           <!-- 自定义表头插槽 -->
           <template v-if="col.headerSlot" #header="scope">
             <slot :name="`header-${col.prop}`" v-bind="scope">
@@ -99,19 +124,25 @@
         </el-table-column>
       </template>
 
+      <!-- 空状态 -->
+      <template #empty>
+        <el-empty v-if="!loading" description="暂无数据" :image-size="100" />
+      </template>
+
       <!-- 兼容旧的插槽方式 -->
       <slot />
     </el-table>
 
     <!-- 分页 -->
     <div v-if="showPagination && total > 0" class="pagination-wrapper">
-      <span class="total">共 {{ total }} 条</span>
       <el-pagination
         v-model:current-page="currentPageModel"
         v-model:page-size="pageSizeModel"
         :page-sizes="pageSizes"
         :total="total"
-        layout="prev, pager, next, sizes, jumper"
+        :disabled="loading"
+        :background="true"
+        layout="total, prev, pager, next, sizes, jumper"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -122,12 +153,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, type VNode } from 'vue'
 import { useFullscreen } from '@vueuse/core'
-import {
-  Search,
-  Refresh,
-  FullScreen,
-  Operation
-} from '@element-plus/icons-vue'
+import { Search, Refresh, FullScreen, Setting, DCaret } from '@element-plus/icons-vue'
 
 defineOptions({ name: 'ArtTable' })
 
@@ -142,15 +168,10 @@ export interface TableColumn {
   sortable?: boolean | 'custom'
   showOverflowTooltip?: boolean
   align?: 'left' | 'center' | 'right'
-  // 自定义渲染函数
   formatter?: (row: any, column?: any, index?: number) => VNode | string
-  // 使用插槽
   slot?: boolean
-  // 表头插槽
   headerSlot?: boolean
-  // 是否显示（用于列设置）
   visible?: boolean
-  // 是否禁用切换
   disabled?: boolean
 }
 
@@ -167,6 +188,7 @@ interface Props {
   stripe?: boolean
   border?: boolean
   height?: string | number
+  headerBackground?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -178,22 +200,25 @@ const props = withDefaults(defineProps<Props>(), {
   pageSizes: () => [10, 20, 50, 100],
   showPagination: true,
   showSearch: true,
-  stripe: true,
+  stripe: false,
   border: false,
-  height: undefined
+  height: undefined,
+  headerBackground: true
 })
 
 const emit = defineEmits<{
   'update:currentPage': [value: number]
   'update:pageSize': [value: number]
   'update:columns': [value: TableColumn[]]
-  'refresh': []
+  refresh: []
   'size-change': [value: number]
   'current-change': [value: number]
 }>()
 
 const tableRef = ref()
 const searchVisible = ref(false)
+const refreshing = ref(false)
+const tableSize = ref<'small' | 'default' | 'large'>('default')
 
 // 全屏
 const { toggle: toggleFullscreen } = useFullscreen()
@@ -201,12 +226,21 @@ const { toggle: toggleFullscreen } = useFullscreen()
 // 表格高度
 const tableHeight = computed(() => props.height)
 
-// 列设置状态（用 reactive 保存勾选状态）
+// 是否为空
+const isEmpty = computed(() => !props.data || props.data.length === 0)
+
+// 表头样式
+const headerCellStyle = computed(() => ({
+  background: 'transparent',
+  fontWeight: 600
+}))
+
+// 列设置状态
 const columnVisibility = ref<Record<string, boolean>>({})
 
 // 初始化列可见状态
 const initColumnVisibility = () => {
-  props.columns.forEach(col => {
+  props.columns.forEach((col) => {
     const key = col.prop || col.type || ''
     if (key && columnVisibility.value[key] === undefined) {
       columnVisibility.value[key] = col.visible !== false
@@ -214,16 +248,19 @@ const initColumnVisibility = () => {
   })
 }
 
-// 监听 columns 变化，初始化可见状态
-watch(() => props.columns, () => {
-  initColumnVisibility()
-}, { immediate: true })
+watch(
+  () => props.columns,
+  () => {
+    initColumnVisibility()
+  },
+  { immediate: true }
+)
 
 // 列设置（带 visible 状态，排除 type 列）
 const columnChecks = computed(() => {
   return props.columns
-    .filter(col => col.prop) // 只显示有 prop 的列
-    .map(col => ({
+    .filter((col) => col.prop)
+    .map((col) => ({
       ...col,
       visible: columnVisibility.value[col.prop!] ?? true
     }))
@@ -236,16 +273,30 @@ const toggleColumnVisible = (prop: string, visible: boolean) => {
 
 // 可见列
 const visibleColumns = computed(() => {
-  return props.columns.filter(col => {
+  return props.columns.filter((col) => {
     const key = col.prop || col.type || ''
     return columnVisibility.value[key] !== false
   })
 })
 
-// 获取列属性（过滤掉自定义属性）
+// 获取列属性
 const getColumnProps = (col: TableColumn) => {
   const { formatter, slot, headerSlot, visible, disabled, ...rest } = col
   return rest
+}
+
+// 刷新
+const handleRefresh = () => {
+  refreshing.value = true
+  emit('refresh')
+  setTimeout(() => {
+    refreshing.value = false
+  }, 500)
+}
+
+// 表格密度
+const handleSizeCommand = (command: 'small' | 'default' | 'large') => {
+  tableSize.value = command
 }
 
 // 分页双向绑定
@@ -278,37 +329,83 @@ defineExpose({
   height: 100%;
   display: flex;
   flex-direction: column;
+
+  &.is-empty {
+    :deep(.el-scrollbar__wrap) {
+      display: flex;
+    }
+  }
 }
 
 .table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
 
   .header-left {
     display: flex;
+    align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
   .header-right {
     display: flex;
+    align-items: center;
     gap: 8px;
+  }
+}
 
-    .el-button {
-      border: none;
-      background: var(--el-fill-color-light);
+.header-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  transition: all 0.2s;
 
-      &:hover {
-        background: var(--el-fill-color);
-      }
+  &:hover {
+    background: var(--el-fill-color);
+    color: var(--el-color-primary);
+  }
+
+  &.active {
+    background: var(--el-color-primary);
+    color: #fff;
+
+    &:hover {
+      background: var(--el-color-primary-light-3);
     }
+  }
+
+  &.loading .el-icon {
+    animation: none;
+  }
+
+  .is-loading {
+    animation: rotating 1s linear infinite;
+  }
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
 .search-bar {
   padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   background: var(--el-fill-color-lighter);
   border-radius: 8px;
 
@@ -317,33 +414,96 @@ defineExpose({
   }
 }
 
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 .column-settings {
   .column-item {
-    padding: 4px 0;
+    padding: 6px 0;
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+    }
+
+    :deep(.el-checkbox__label) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 }
 
 .pagination-wrapper {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid var(--el-border-color-lighter);
 
-  .total {
-    margin-right: 16px;
-    font-size: 14px;
-    color: var(--el-text-color-secondary);
+  :deep(.el-pagination) {
+    .btn-prev,
+    .btn-next {
+      background-color: transparent;
+      border: 1px solid var(--el-border-color);
+      transition: border-color 0.15s;
+
+      &:hover:not(:disabled) {
+        color: var(--el-color-primary);
+        border-color: var(--el-color-primary);
+      }
+    }
+
+    .el-pager li {
+      background-color: transparent;
+      border: 1px solid var(--el-border-color);
+      transition: border-color 0.15s;
+
+      &.is-active {
+        color: #fff;
+        background-color: var(--el-color-primary);
+        border-color: var(--el-color-primary);
+      }
+
+      &:hover:not(.is-active) {
+        border-color: var(--el-color-primary);
+      }
+    }
   }
 }
 
 :deep(.el-table) {
   flex: 1;
+  border-radius: 8px;
 
   .el-table__header th {
-    background: var(--el-fill-color-lighter) !important;
     font-weight: 500;
   }
+
+  .el-table__empty-block {
+    min-height: 200px;
+  }
+}
+
+:deep(.el-loading-mask) {
+  background-color: var(--el-bg-color);
+  z-index: 10;
+}
+
+// 下拉菜单激活状态
+:deep(.el-dropdown-menu__item.is-active) {
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
 }
 </style>

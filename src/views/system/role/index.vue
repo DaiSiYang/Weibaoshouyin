@@ -24,15 +24,12 @@
         <template #search>
           <el-form :model="searchForm" inline>
             <el-form-item label="角色名称">
-              <el-input v-model="searchForm.roleName" placeholder="请输入角色名称" clearable />
-            </el-form-item>
-            <el-form-item label="角色编码">
-              <el-input v-model="searchForm.roleCode" placeholder="请输入角色编码" clearable />
+              <el-input v-model="searchForm.name" placeholder="请输入角色名称" clearable />
             </el-form-item>
             <el-form-item label="状态">
-              <el-select v-model="searchForm.enabled" placeholder="请选择" clearable style="width: 120px">
-                <el-option label="启用" :value="true" />
-                <el-option label="禁用" :value="false" />
+              <el-select v-model="searchForm.status" placeholder="请选择" clearable style="width: 120px">
+                <el-option label="启用" :value="1" />
+                <el-option label="禁用" :value="0" />
               </el-select>
             </el-form-item>
             <el-form-item>
@@ -43,9 +40,9 @@
         </template>
 
         <!-- 状态列插槽 -->
-        <template #enabled="{ row }">
-          <el-tag :type="row.enabled ? 'success' : 'warning'">
-            {{ row.enabled ? '启用' : '禁用' }}
+        <template #status="{ row }">
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+            {{ row.status === 1 ? '启用' : '禁用' }}
           </el-tag>
         </template>
 
@@ -58,16 +55,12 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="handlePermission(row)">
-                  <el-icon><User /></el-icon>
+                  <el-icon><Setting /></el-icon>
                   菜单权限
                 </el-dropdown-item>
                 <el-dropdown-item @click="handleEdit(row)">
                   <el-icon><Edit /></el-icon>
                   编辑角色
-                </el-dropdown-item>
-                <el-dropdown-item @click="handleDelete(row)" style="color: #f56c6c">
-                  <el-icon><Delete /></el-icon>
-                  删除角色
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -92,37 +85,28 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormRules } from 'element-plus'
-import { Plus, MoreFilled, User, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, MoreFilled, Setting, Edit } from '@element-plus/icons-vue'
 import ArtTable, { type TableColumn } from '@/components/core/ArtTable.vue'
 import ArtFormDialog, { type FormField } from '@/components/core/ArtFormDialog.vue'
+import { getRoleList, editRole, type RoleItem } from '@/api/role'
 
 defineOptions({ name: 'Role' })
 
-interface RoleItem {
-  roleId: number
-  roleName: string
-  roleCode: string
-  description: string
-  enabled: boolean
-  createTime: string
-}
-
 // 表格列配置
 const columns: TableColumn[] = [
-  { prop: 'roleId', label: '角色ID', width: 100 },
-  { prop: 'roleName', label: '角色名称', minWidth: 120 },
-  { prop: 'roleCode', label: '角色编码', minWidth: 120 },
-  { prop: 'description', label: '角色描述', minWidth: 180, showOverflowTooltip: true },
-  { prop: 'enabled', label: '角色状态', width: 100, slot: true },
-  { prop: 'createTime', label: '创建日期', width: 180, sortable: true },
-  { prop: 'operation', label: '操作', width: 80, fixed: 'right', slot: true }
+  { prop: 'name', label: '角色名称', minWidth: 120 },
+  { prop: 'key', label: '角色编号', minWidth: 120 },
+  { prop: 'remark', label: '作用描述', minWidth: 180, showOverflowTooltip: true },
+  { prop: 'status', label: '使用状态', width: 100, slot: true },
+  { prop: 'created_time', label: '创建时间', width: 170 },
+  { prop: 'updated_time', label: '更新时间', width: 170 },
+  { prop: 'operation', label: '其他操作', width: 80, fixed: 'right', slot: true }
 ]
 
 // 搜索
 const searchForm = reactive({
-  roleName: '',
-  roleCode: '',
-  enabled: undefined as boolean | undefined
+  name: '',
+  status: undefined as number | undefined
 })
 
 // 表格
@@ -140,55 +124,44 @@ const formData = ref<Record<string, any>>({})
 
 // 表单字段配置
 const formFields: FormField[] = [
-  { prop: 'roleName', label: '角色名称', type: 'input' },
-  { prop: 'roleCode', label: '角色编码', type: 'input' },
-  { prop: 'description', label: '角色描述', type: 'textarea', rows: 3 },
-  { prop: 'enabled', label: '状态', type: 'switch' }
+  { prop: 'name', label: '角色名称', type: 'input' },
+  { prop: 'key', label: '角色编号', type: 'input' },
+  { prop: 'remark', label: '作用描述', type: 'textarea', rows: 3 },
+  {
+    prop: 'status',
+    label: '启用状态',
+    type: 'radio',
+    options: [
+      { label: '启用', value: 1 },
+      { label: '禁用', value: 2 }
+    ]
+  }
 ]
 
 // 表单校验规则
 const rules: FormRules = {
-  roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-  roleCode: [{ required: true, message: '请输入角色编码', trigger: 'blur' }]
+  name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
+  key: [{ required: true, message: '请输入角色编号', trigger: 'blur' }]
 }
 
-// 模拟数据
-const mockData: RoleItem[] = [
-  { roleId: 1, roleName: '系统管理员', roleCode: 'R_SUPPORT', description: '处理客户支持请求', enabled: false, createTime: '1991-08-29 03:23:40' },
-  { roleId: 2, roleName: '普通用户', roleCode: 'R_FINANCE', description: '负责系统维护和更新', enabled: true, createTime: '1985-07-27 12:11:09' },
-  { roleId: 3, roleName: '超级管理员', roleCode: 'R_DATA', description: '管理项目相关权限', enabled: true, createTime: '2010-12-24 22:02:37' },
-  { roleId: 4, roleName: '普通用户', roleCode: 'R_DATA', description: '拥有数据分析权限', enabled: true, createTime: '2022-07-22 06:28:02' },
-  { roleId: 5, roleName: '财务', roleCode: 'R_GUEST', description: '管理财务相关权限', enabled: true, createTime: '2012-08-02 06:27:56' },
-  { roleId: 6, roleName: '系统管理员', roleCode: 'R_ADMIN', description: '管理项目相关权限', enabled: true, createTime: '1973-10-24 05:00:31' },
-  { roleId: 7, roleName: '运维', roleCode: 'R_OPS', description: '处理客户支持请求', enabled: false, createTime: '2004-01-01 18:47:21' },
-  { roleId: 8, roleName: '客服', roleCode: 'R_FINANCE', description: '拥有系统普通权限', enabled: true, createTime: '2014-08-19 14:28:08' },
-  { roleId: 9, roleName: '普通用户', roleCode: 'R_TEST', description: '拥有数据分析权限', enabled: true, createTime: '1973-02-27 08:26:00' },
-  { roleId: 10, roleName: '运维', roleCode: 'R_USER', description: '拥有数据分析权限', enabled: false, createTime: '2001-06-12 07:20:10' },
-  { roleId: 11, roleName: '数据分析师', roleCode: 'R_TEST', description: '仅限浏览权限', enabled: true, createTime: '2006-01-01 18:47:20' },
-  { roleId: 12, roleName: '系统管理员', roleCode: 'R_OPS', description: '管理项目相关权限', enabled: false, createTime: '1972-09-17 17:44:30' },
-  { roleId: 13, roleName: '客服', roleCode: 'R_DATA', description: '拥有系统管理权限', enabled: false, createTime: '1981-04-19 22:56:25' }
-]
-
 // 获取数据
-const fetchData = () => {
+const fetchData = async () => {
   loading.value = true
-  setTimeout(() => {
-    let filtered = [...mockData]
-    if (searchForm.roleName) {
-      filtered = filtered.filter((item) => item.roleName.includes(searchForm.roleName))
-    }
-    if (searchForm.roleCode) {
-      filtered = filtered.filter((item) => item.roleCode.includes(searchForm.roleCode))
-    }
-    if (searchForm.enabled !== undefined) {
-      filtered = filtered.filter((item) => item.enabled === searchForm.enabled)
-    }
-
-    total.value = filtered.length
-    const start = (currentPage.value - 1) * pageSize.value
-    tableData.value = filtered.slice(start, start + pageSize.value)
+  const params = {
+    page: currentPage.value,
+    page_size: pageSize.value
+  }
+  console.log('[角色管理] 获取列表 - 请求参数:', params)
+  try {
+    const res = await getRoleList(params)
+    console.log('[角色管理] 获取列表 - 响应数据:', res)
+    tableData.value = res.list || []
+    total.value = res.total_count || 0
+  } catch (error) {
+    console.error('[角色管理] 获取列表失败:', error)
+  } finally {
     loading.value = false
-  }, 300)
+  }
 }
 
 const handleSearch = () => {
@@ -197,9 +170,8 @@ const handleSearch = () => {
 }
 
 const resetSearch = () => {
-  searchForm.roleName = ''
-  searchForm.roleCode = ''
-  searchForm.enabled = undefined
+  searchForm.name = ''
+  searchForm.status = undefined
   handleSearch()
 }
 
@@ -209,7 +181,12 @@ const handleCurrentChange = () => fetchData()
 // 新增
 const handleAdd = () => {
   dialogType.value = 'add'
-  formData.value = { roleId: 0, roleName: '', roleCode: '', description: '', enabled: true }
+  formData.value = {
+    name: '',
+    key: '',
+    remark: '',
+    status: 1
+  }
   dialogVisible.value = true
 }
 
@@ -221,33 +198,36 @@ const handleEdit = (row: RoleItem) => {
 }
 
 // 提交
-const handleSubmit = (data: Record<string, any>) => {
+const handleSubmit = async (data: Record<string, any>) => {
   submitLoading.value = true
-  setTimeout(() => {
-    submitLoading.value = false
-    ElMessage.success(dialogType.value === 'add' ? '新增成功' : '编辑成功')
+  const params: Record<string, any> = {
+    name: data.name,
+    key: data.key,
+    remark: data.remark,
+    status: data.status
+  }
+  // 编辑时需要传 id
+  if (dialogType.value === 'edit' && data.id) {
+    params.id = data.id
+  }
+  const action = dialogType.value === 'add' ? '新增' : '编辑'
+  console.log(`[角色管理] ${action}角色 - 请求参数:`, params)
+  try {
+    const res = await editRole(params)
+    console.log(`[角色管理] ${action}角色 - 响应数据:`, res)
+    ElMessage.success(`${action}成功`)
     dialogVisible.value = false
     fetchData()
-    console.log('提交数据:', data)
-  }, 500)
+  } catch (error) {
+    console.error(`[角色管理] ${action}角色失败:`, error)
+  } finally {
+    submitLoading.value = false
+  }
 }
 
-// 删除
-const handleDelete = (row: RoleItem) => {
-  ElMessageBox.confirm(`确定删除角色"${row.roleName}"吗？`, '删除确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(() => {
-      ElMessage.success('删除成功')
-      fetchData()
-    })
-    .catch(() => {})
-}
-
+// 菜单权限
 const handlePermission = (row: RoleItem) => {
-  ElMessage.info(`配置角色"${row.roleName}"的菜单权限`)
+  ElMessage.info(`配置角色"${row.name}"的菜单权限`)
 }
 
 onMounted(() => fetchData())

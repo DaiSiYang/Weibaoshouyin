@@ -35,7 +35,7 @@ export const useSettingStore = defineStore(
         const containerWidth = ref<ContainerWidthEnum>(ContainerWidthEnum.FULL)
         const customRadius = ref('0.75')
         const pageTransition = ref('slide-left')
-        const tabStyle = ref('tab-default')
+        const tabStyle = ref('default')
 
         // ==================== 系统主题监听 ====================
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')

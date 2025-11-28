@@ -58,7 +58,8 @@
         "tabStyle": {
             "default": "默认",
             "card": "卡片",
-            "google": "谷歌"
+            "google": "谷歌",
+            "simple": "简约"
         },
         "transition": {
             "list": {

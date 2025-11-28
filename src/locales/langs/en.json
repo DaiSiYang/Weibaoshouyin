@@ -58,7 +58,8 @@
         "tabStyle": {
             "default": "Default",
             "card": "Card",
-            "google": "Google"
+            "google": "Google",
+            "simple": "Simple"
         },
         "transition": {
             "list": {

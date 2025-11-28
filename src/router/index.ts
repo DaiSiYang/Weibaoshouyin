@@ -32,127 +32,111 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/',
         component: Layout,
-        redirect: '/dashboard/service-stats',
+        redirect: '/service-stats',
         children: [
-            // 数据仪表（父菜单）
+            // ========== 数据仪表 ==========
             {
-                path: 'dashboard',
-                name: 'Dashboard',
-                redirect: '/dashboard/service-stats',
-                meta: { title: '数据仪表', icon: 'Odometer' },
-                children: [
-                    {
-                        path: 'service-stats',
-                        name: 'ServiceStats',
-                        component: () => import('@/views/dashboard/index.vue'),
-                        meta: { title: '服务统计', icon: 'House' }
-                    },
-                    {
-                        path: 'analysis',
-                        name: 'Analysis',
-                        component: () => import('@/views/dashboard/index.vue'),
-                        meta: { title: '分析统计', icon: 'DataAnalysis' }
-                    },
-                    {
-                        path: 'business-stats',
-                        name: 'BusinessStats',
-                        component: () => import('@/views/dashboard/index.vue'),
-                        meta: { title: '商务统计', icon: 'Histogram' }
-                    }
-                ]
+                path: 'service-stats',
+                name: 'ServiceStats',
+                component: () => import('@/views/dashboard/index.vue'),
+                meta: { title: '服务统计', icon: 'House', parent: '数据仪表', parentIcon: 'Odometer' }
             },
-            // 权限管理
+            {
+                path: 'analysis',
+                name: 'Analysis',
+                component: () => import('@/views/dashboard/index.vue'),
+                meta: { title: '分析统计', icon: 'DataAnalysis', parent: '数据仪表', parentIcon: 'Odometer' }
+            },
+            {
+                path: 'business-stats',
+                name: 'BusinessStats',
+                component: () => import('@/views/dashboard/index.vue'),
+                meta: { title: '商务统计', icon: 'Histogram', parent: '数据仪表', parentIcon: 'Odometer' }
+            },
+            // ========== 权限管理 ==========
             {
                 path: 'permission',
                 name: 'Permission',
                 component: () => import('@/views/system/index.vue'),
                 meta: { title: '权限管理', icon: 'Lock' }
             },
-            // 菜单管理
+            // ========== 菜单管理 ==========
             {
                 path: 'menu-manage',
                 name: 'MenuManage',
                 component: () => import('@/views/system/index.vue'),
                 meta: { title: '菜单管理', icon: 'Grid' }
             },
-            // 应用安装
+            // ========== 应用安装 ==========
             {
                 path: 'app-install',
                 name: 'AppInstall',
                 component: () => import('@/views/system/index.vue'),
                 meta: { title: '应用安装', icon: 'Download' }
             },
-            // 用户管理（父菜单）
+            // ========== 用户管理 ==========
             {
-                path: 'user-manage',
-                name: 'UserManage',
-                redirect: '/user-manage/users',
-                meta: { title: '用户管理', icon: 'User' },
-                children: [
-                    {
-                        path: 'users',
-                        name: 'Users',
-                        component: () => import('@/views/system/index.vue'),
-                        meta: { title: '用户列表', icon: 'User' }
-                    },
-                    {
-                        path: 'roles',
-                        name: 'Roles',
-                        component: () => import('@/views/system/index.vue'),
-                        meta: { title: '角色管理', icon: 'Avatar' }
-                    }
-                ]
+                path: 'users',
+                name: 'Users',
+                component: () => import('@/views/system/index.vue'),
+                meta: { title: '用户列表', icon: 'User', parent: '用户管理', parentIcon: 'User' }
             },
-            // 业务协议
+            {
+                path: 'roles',
+                name: 'Roles',
+                component: () => import('@/views/system/role/index.vue'),
+                meta: { title: '角色管理', icon: 'Avatar', parent: '用户管理', parentIcon: 'User' }
+            },
+            // ========== 业务协议 ==========
             {
                 path: 'agreement',
                 name: 'Agreement',
                 component: () => import('@/views/document/index.vue'),
                 meta: { title: '业务协议', icon: 'Document' }
             },
-            // 运营管理
+            // ========== 运营管理 ==========
             {
                 path: 'operation',
                 name: 'Operation',
                 component: () => import('@/views/system/index.vue'),
                 meta: { title: '运营管理', icon: 'Monitor' }
             },
-            // 奖励分成
+            // ========== 奖励分成 ==========
             {
                 path: 'reward',
                 name: 'Reward',
                 component: () => import('@/views/system/index.vue'),
                 meta: { title: '奖励分成', icon: 'Present' }
             },
-            // 客服中心
+            // ========== 客服中心 ==========
             {
                 path: 'customer-service',
                 name: 'CustomerService',
                 component: () => import('@/views/system/index.vue'),
                 meta: { title: '客服中心', icon: 'Service' }
             },
-            // 个人中心
+            // ========== 个人中心 ==========
             {
                 path: 'user-center',
                 name: 'UserCenter',
                 component: () => import('@/views/user-center/index.vue'),
                 meta: { title: '个人中心', icon: 'UserFilled' }
             },
-            // 操作日志
+            // ========== 操作日志 ==========
             {
                 path: 'operation-log',
                 name: 'OperationLog',
                 component: () => import('@/views/changelog/index.vue'),
                 meta: { title: '操作日志', icon: 'Tickets' }
             },
-            // 运维监控
+            // ========== 运维监控 ==========
             {
                 path: 'monitor',
                 name: 'Monitor',
                 component: () => import('@/views/safeguard/index.vue'),
                 meta: { title: '运维监控', icon: 'View' }
             },
-            // 系统管理
+            // ========== 系统管理 ==========
             {
                 path: 'system',
                 name: 'System',
@@ -164,8 +148,40 @@ const routes: RouteRecordRaw[] = [
     // 404
     {
         path: '/:pathMatch(.*)*',
-        redirect: '/dashboard/service-stats'
+        redirect: '/service-stats'
     }
+]
+
+// 菜单配置（用于侧边栏显示，支持嵌套）
+export const menuConfig = [
+    {
+        title: '数据仪表',
+        icon: 'Odometer',
+        children: [
+            { path: '/service-stats', title: '服务统计', icon: 'House' },
+            { path: '/analysis', title: '分析统计', icon: 'DataAnalysis' },
+            { path: '/business-stats', title: '商务统计', icon: 'Histogram' }
+        ]
+    },
+    { path: '/permission', title: '权限管理', icon: 'Lock' },
+    { path: '/menu-manage', title: '菜单管理', icon: 'Grid' },
+    { path: '/app-install', title: '应用安装', icon: 'Download' },
+    {
+        title: '用户管理',
+        icon: 'User',
+        children: [
+            { path: '/users', title: '用户列表', icon: 'User' },
+            { path: '/roles', title: '角色管理', icon: 'Avatar' }
+        ]
+    },
+    { path: '/agreement', title: '业务协议', icon: 'Document' },
+    { path: '/operation', title: '运营管理', icon: 'Monitor' },
+    { path: '/reward', title: '奖励分成', icon: 'Present' },
+    { path: '/customer-service', title: '客服中心', icon: 'Service' },
+    { path: '/user-center', title: '个人中心', icon: 'UserFilled' },
+    { path: '/operation-log', title: '操作日志', icon: 'Tickets' },
+    { path: '/monitor', title: '运维监控', icon: 'View' },
+    { path: '/system', title: '系统管理', icon: 'Setting' }
 ]
 
 const router = createRouter({
@@ -174,13 +190,12 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
     const userStore = useUserStore()
     const token = userStore.token
 
     // 白名单路由直接放行
     if (whiteList.includes(to.path)) {
-        // 已登录访问登录页，跳转到首页
         if (token && to.path === '/login') {
             next('/')
             return
@@ -193,7 +208,6 @@ router.beforeEach((to, from, next) => {
     if (token) {
         next()
     } else {
-        // 未登录，跳转到登录页，并记录原路径
         next({
             path: '/login',
             query: { redirect: to.fullPath }

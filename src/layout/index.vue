@@ -6,6 +6,7 @@
     <!-- 主内容区 -->
     <div class="main-container">
       <HeaderBar />
+      <WorkTab />
       <main class="content">
         <router-view />
       </main>
@@ -16,6 +17,7 @@
 <script setup lang="ts">
 import Sidebar from './components/Sidebar.vue'
 import HeaderBar from './components/HeaderBar.vue'
+import WorkTab from './components/WorkTab.vue'
 </script>
 
 <style scoped lang="scss">
@@ -30,12 +32,12 @@ import HeaderBar from './components/HeaderBar.vue'
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--el-bg-color-page);
 }
 
 .content {
   flex: 1;
   overflow: auto;
-  background: var(--el-bg-color-page);
-  padding: 20px;
+  padding: 16px;
 }
 </style>

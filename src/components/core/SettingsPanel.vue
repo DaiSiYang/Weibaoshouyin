@@ -171,9 +171,10 @@
         <div class="setting-row">
           <span>{{ $t('setting.basics.list.tabStyle') }}</span>
           <el-select v-model="tabStyleVal" size="small" style="width: 120px" @change="handleTabStyleChange">
-            <el-option :label="$t('setting.tabStyle.default')" value="tab-default" />
-            <el-option :label="$t('setting.tabStyle.card')" value="tab-card" />
-            <el-option :label="$t('setting.tabStyle.google')" value="tab-google" />
+            <el-option :label="$t('setting.tabStyle.default')" value="default" />
+            <el-option :label="$t('setting.tabStyle.card')" value="card" />
+            <el-option :label="$t('setting.tabStyle.google')" value="google" />
+            <el-option :label="$t('setting.tabStyle.simple')" value="simple" />
           </el-select>
         </div>
         <div class="setting-row">

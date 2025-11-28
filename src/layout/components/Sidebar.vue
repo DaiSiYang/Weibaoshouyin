@@ -1,12 +1,12 @@
 <template>
-  <aside class="layout-sidebar" :class="{ 'no-border': menuRoutes.length === 0 }">
+  <aside class="layout-sidebar">
     <div class="sidebar-container" :class="{ collapsed: !menuOpen }">
       <!-- Logo 和系统名称 -->
       <div class="header" @click="toHome">
         <div class="logo">
           <ArtLogo :size="32" />
         </div>
-        <p :style="{ opacity: menuOpen ? 1 : 0 }">鹊莲银通运营中心</p>
+        <p :style="{ opacity: menuOpen ? 1 : 0 }">鹊莲营通运营中心</p>
       </div>
 
       <!-- 菜单列表 -->
@@ -15,18 +15,35 @@
           :default-active="activeMenu"
           :collapse="!menuOpen"
           :collapse-transition="false"
-          :unique-opened="false"
+          :unique-opened="true"
           :class="`el-menu-${menuTheme}`"
           :background-color="menuBgColor"
           :text-color="menuTextColor"
           :active-text-color="menuActiveTextColor"
+          router
         >
-          <SidebarMenuItem
-            v-for="route in menuRoutes"
-            :key="route.path"
-            :item="route"
-            :menu-open="menuOpen"
-          />
+          <template v-for="menu in menuConfig" :key="menu.path || menu.title">
+            <!-- 有子菜单 -->
+            <el-sub-menu v-if="menu.children" :index="menu.title">
+              <template #title>
+                <el-icon><component :is="menu.icon" /></el-icon>
+                <span>{{ menu.title }}</span>
+              </template>
+              <el-menu-item
+                v-for="child in menu.children"
+                :key="child.path"
+                :index="child.path"
+              >
+                <el-icon><component :is="child.icon" /></el-icon>
+                <span>{{ child.title }}</span>
+              </el-menu-item>
+            </el-sub-menu>
+            <!-- 无子菜单 -->
+            <el-menu-item v-else :index="menu.path">
+              <el-icon><component :is="menu.icon" /></el-icon>
+              <span>{{ menu.title }}</span>
+            </el-menu-item>
+          </template>
         </el-menu>
       </el-scrollbar>
     </div>
@@ -38,7 +55,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useSettingStore } from '@/store/modules/setting'
-import SidebarMenuItem from './SidebarMenuItem.vue'
+import { menuConfig } from '@/router'
 import ArtLogo from '@/components/core/ArtLogo.vue'
 
 const router = useRouter()
@@ -47,36 +64,28 @@ const settingStore = useSettingStore()
 
 const { menuOpen, isDark } = storeToRefs(settingStore)
 
-// 菜单路由列表
-const menuRoutes = computed(() => {
-  const routes = router.getRoutes().find(r => r.path === '/')?.children || []
-  return routes.filter(r => !r.meta?.isHide)
-})
-
 // 当前激活的菜单
 const activeMenu = computed(() => route.path)
 
 // 菜单主题
-const menuTheme = computed(() => isDark.value ? 'dark' : 'design')
+const menuTheme = computed(() => (isDark.value ? 'dark' : 'design'))
 
 // 菜单背景色
-const menuBgColor = computed(() => {
-  return isDark.value ? '#141414' : '#ffffff'
-})
+const menuBgColor = computed(() => (isDark.value ? '#141414' : '#ffffff'))
 
 // 菜单文字颜色
-const menuTextColor = computed(() => {
-  return isDark.value ? 'rgba(255, 255, 255, 0.7)' : '#29343D'
-})
+const menuTextColor = computed(() =>
+    isDark.value ? 'rgba(255, 255, 255, 0.7)' : '#29343D'
+)
 
 // 菜单激活文字颜色
-const menuActiveTextColor = computed(() => {
-  return isDark.value ? '#ffffff' : 'var(--el-color-primary)'
-})
+const menuActiveTextColor = computed(() =>
+    isDark.value ? '#ffffff' : 'var(--el-color-primary)'
+)
 
 // 跳转首页
 const toHome = () => {
-  router.push('/dashboard')
+    router.push('/service-stats')
 }
 </script>
 
@@ -86,10 +95,6 @@ const toHome = () => {
   height: 100vh;
   user-select: none;
   border-right: 1px solid var(--el-border-color);
-
-  &.no-border {
-    border-right: none !important;
-  }
 
   .sidebar-container {
     width: 240px;
@@ -134,11 +139,12 @@ const toHome = () => {
       left: 64px;
       box-sizing: border-box;
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
       line-height: 60px;
       color: var(--el-text-color-primary);
       transition: opacity 0.3s;
+      white-space: nowrap;
     }
   }
 

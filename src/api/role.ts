@@ -62,3 +62,16 @@ export function editRole(data: RoleEditParams) {
 export function deleteRole(id: number) {
     return http.post<any>('/role/delete', { id })
 }
+
+// 角色树形选项类型
+export interface RoleTreeOption {
+    id: number
+    pid: number
+    name: string
+    children: RoleTreeOption[] | null
+}
+
+// 获取角色关系树选项
+export function getRoleTreeOption() {
+    return http.get<RoleTreeOption[]>('/role/treeOption')
+}

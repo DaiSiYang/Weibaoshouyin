@@ -52,3 +52,16 @@ export function editDept(data: DeptEditParams) {
 export function deleteDept(id: number) {
     return http.post<any>('/dept/delete', { id })
 }
+
+// 部门树形选项类型
+export interface DeptTreeOption {
+    id: number
+    pid: number
+    name: string
+    children: DeptTreeOption[] | null
+}
+
+// 获取部门关系树选项
+export function getDeptTreeOption() {
+    return http.get<DeptTreeOption[]>('/dept/treeOption')
+}

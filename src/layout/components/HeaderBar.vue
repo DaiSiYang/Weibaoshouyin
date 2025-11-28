@@ -10,7 +10,7 @@
       />
       <ArtSvgIcon icon="ri:refresh-line" class="header-icon refresh-btn" size="20" color="#7987a1" @click="handleRefresh" />
       <ArtSvgIcon icon="ri:function-line" class="header-icon" size="20" color="#7987a1" />
-      <span class="header-text">仪表盘 / 工作台</span>
+      <span class="header-text">{{ breadcrumb }}</span>
     </div>
 
     <div class="header-right">
@@ -140,10 +140,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useFullscreen } from '@vueuse/core'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useSettingStore } from '@/store/modules/setting'
@@ -155,9 +155,19 @@ import SettingsPanel from '@/components/core/SettingsPanel.vue'
 const userInfoStore = useUserStore()
 
 const router = useRouter()
+const route = useRoute()
 const { locale, t } = useI18n()
 const settingStore = useSettingStore()
 const userStore = useUserStore()
+
+// 面包屑导航
+const breadcrumb = computed(() => {
+  const meta = route.meta
+  if (meta?.parent) {
+    return `${meta.parent} / ${meta.title}`
+  }
+  return meta?.title || '首页'
+})
 
 const { menuOpen, isDark } = storeToRefs(settingStore)
 const { userInfo } = storeToRefs(userStore)
